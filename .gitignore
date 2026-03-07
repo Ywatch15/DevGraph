@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+.next/
+dist/
+build/
+coverage/
+*.log
+.DS_Store
+Thumbs.db
+implementation_plan.md.resolved
+walkthrough.md.resolved

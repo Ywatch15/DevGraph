@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>DevGraph Clipper</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="popup">
+      <div class="header">
+        <div class="logo">⚡</div>
+        <h1>DevGraph Clipper</h1>
+      </div>
+
+      <div id="login-section" class="section">
+        <h3>Connect to DevGraph</h3>
+        <input
+          type="text"
+          id="api-url"
+          placeholder="API URL (default: http://localhost:5000/api)"
+          value="http://localhost:5000/api"
+        />
+        <input type="email" id="email" placeholder="Email" />
+        <input type="password" id="password" placeholder="Password" />
+        <button id="login-btn" class="btn-primary">Connect</button>
+        <p id="login-error" class="error"></p>
+      </div>
+
+      <div id="capture-section" class="section hidden">
+        <div class="connected">
+          <span class="dot"></span> Connected as <span id="user-name"></span>
+        </div>
+
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="title" placeholder="Note title" />
+        </div>
+
+        <div class="field">
+          <label>Selected Text</label>
+          <textarea
+            id="description"
+            rows="3"
+            placeholder="Selected text or description"
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label>Code Snippets Found</label>
+          <div id="snippets-container">
+            <p class="muted">Click "Capture Page" to extract code</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Tags</label>
+          <input type="text" id="tags" placeholder="Comma-separated tags" />
+        </div>
+
+        <div class="actions">
+          <button id="capture-btn" class="btn-secondary">Capture Page</button>
+          <button id="save-btn" class="btn-primary">Save to DevGraph</button>
+        </div>
+
+        <p id="status" class="status"></p>
+        <button id="logout-btn" class="btn-ghost">Disconnect</button>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
