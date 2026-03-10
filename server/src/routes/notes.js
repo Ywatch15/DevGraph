@@ -63,7 +63,7 @@ router.get("/:id", auth, idParamRule, async (req, res, next) => {
 // GET /api/notes/:id/related
 router.get("/:id/related", auth, idParamRule, async (req, res, next) => {
   try {
-    const related = await relatedService.findRelated(req.params.id, req.userId);
+    const related = await relatedService.getRelated(req.params.id, req.userId);
     res.json(related);
   } catch (error) {
     next(error);

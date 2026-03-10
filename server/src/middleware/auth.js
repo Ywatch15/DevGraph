@@ -29,6 +29,7 @@ const auth = async (req, res, next) => {
       email: data.user.email,
       name: data.user.user_metadata?.name || "",
     };
+    req.userId = data.user.id;
 
     next();
   } catch (error) {

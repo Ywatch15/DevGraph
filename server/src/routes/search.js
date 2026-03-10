@@ -42,7 +42,7 @@ router.post("/error-match", auth, async (req, res, next) => {
 router.post("/suggest", auth, async (req, res, next) => {
   try {
     const { text } = req.body;
-    const results = await devMemoryService.suggest(req.userId, text);
+    const results = await devMemoryService.getSuggestions(req.userId, text);
     res.json(results);
   } catch (error) {
     next(error);
