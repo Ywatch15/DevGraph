@@ -1,5 +1,5 @@
 const FlexSearch = require("flexsearch");
-const Note = require("../models/Note");
+const { supabase } = require("../config/supabase");
 
 class SearchService {
   constructor() {
@@ -8,38 +8,30 @@ class SearchService {
     this.initialized = false;
   }
 
-  /**
-   * Initialize FlexSearch index for a user
-   */
   async initIndex(userId) {
     this.index = new FlexSearch.Index({
       tokenize: "forward",
       cache: true,
     });
 
-    // Load all user notes into index
-    const notes = await Note.find({ userId })
-      .select("title description tags codeSnippet")
-      .lean();
+    const { data: notes } = await supabase
+      .from("notes")
+      .select("id, title, description, tags, code_snippet")
+      .eq("user_id", userId);
 
-    for (const note of notes) {
-      const text = `${note.title} ${note.description || ""} ${(note.tags || []).join(" ")} ${note.codeSnippet || ""}`;
-      this.index.add(note._id.toString(), text);
-      this.noteMap.set(note._id.toString(), note);
+    for (const note of notes || []) {
+      const text = `${note.title} ${note.description || ""} ${(note.tags || []).join(" ")} ${note.code_snippet || ""}`;
+      this.index.add(note.id, text);
+      this.noteMap.set(note.id, note);
     }
 
     this.initialized = true;
   }
 
-  /**
-   * Add or update a note in the index
-   */
   addToIndex(note) {
     if (!this.index) return;
-    const id = note._id.toString();
-    const text = `${note.title} ${note.description || ""} ${(note.tags || []).join(" ")} ${note.codeSnippet || ""}`;
-
-    // Remove old entry if exists
+    const id = note.id || note._id;
+    const text = `${note.title} ${note.description || ""} ${(note.tags || []).join(" ")} ${note.codeSnippet || note.code_snippet || ""}`;
     try {
       this.index.remove(id);
     } catch (e) {
@@ -49,86 +41,66 @@ class SearchService {
     this.noteMap.set(id, note);
   }
 
-  /**
-   * Remove a note from the index
-   */
   removeFromIndex(noteId) {
     if (!this.index) return;
     try {
-      this.index.remove(noteId.toString());
-      this.noteMap.delete(noteId.toString());
+      this.index.remove(noteId);
+      this.noteMap.delete(noteId);
     } catch (e) {
       /* ignore */
     }
   }
 
-  /**
-   * Hybrid search: FlexSearch + MongoDB text search
-   */
   async search(userId, { q, tags, page = 1, limit = 20 } = {}) {
     if (!q && !tags) {
       return { results: [], pagination: { page, limit, total: 0, pages: 0 } };
     }
 
-    // Initialize if needed
     if (!this.initialized) {
       await this.initIndex(userId);
     }
 
     let flexResults = [];
-    let mongoResults = [];
 
-    // FlexSearch for speed (in-memory)
+    // FlexSearch for fast fuzzy in-memory
     if (q && this.index) {
-      const ids = this.index.search(q, { limit: 100 });
-      flexResults = ids;
+      flexResults = this.index.search(q, { limit: 100 });
     }
 
-    // MongoDB text search for completeness
-    const mongoQuery = { userId };
+    // PostgreSQL full-text search
+    let query = supabase.from("notes").select("*").eq("user_id", userId);
+
     if (q) {
-      mongoQuery.$text = { $search: q };
+      query = query.textSearch("fts", q.split(/\s+/).join(" & "), {
+        type: "plain",
+      });
     }
     if (tags) {
       const tagList = tags.split(",").map((t) => t.trim().toLowerCase());
-      mongoQuery.tags = { $in: tagList };
+      query = query.overlaps("tags", tagList);
     }
 
-    const mongoProjection = q ? { score: { $meta: "textScore" } } : {};
-    const mongoSort = q ? { score: { $meta: "textScore" } } : { updatedAt: -1 };
+    const { data: pgResults } = await query;
 
-    mongoResults = await Note.find(mongoQuery, mongoProjection)
-      .sort(mongoSort)
-      .lean();
-
-    // Merge results: prioritize FlexSearch order, add any MongoDB-only results
+    // Merge: FlexSearch first, then PG-only
     const resultMap = new Map();
     const flexSet = new Set(flexResults.map(String));
 
-    // FlexSearch results first (they're faster / more relevant for fuzzy)
     for (const id of flexResults) {
-      const note = mongoResults.find((n) => n._id.toString() === id.toString());
-      if (note) {
-        resultMap.set(id.toString(), {
-          ...note,
-          _searchScore: (note.score || 0) + 1,
-        });
+      const note = (pgResults || []).find((n) => n.id === id);
+      if (note)
+        resultMap.set(id, { ...this.formatNote(note), _searchScore: 2 });
+    }
+
+    for (const note of pgResults || []) {
+      if (!resultMap.has(note.id)) {
+        resultMap.set(note.id, { ...this.formatNote(note), _searchScore: 1 });
       }
     }
 
-    // Add MongoDB-only results
-    for (const note of mongoResults) {
-      const id = note._id.toString();
-      if (!resultMap.has(id)) {
-        resultMap.set(id, { ...note, _searchScore: note.score || 0 });
-      }
-    }
-
-    // Sort by combined score
     let results = Array.from(resultMap.values());
     results.sort((a, b) => (b._searchScore || 0) - (a._searchScore || 0));
 
-    // Paginate
     const total = results.length;
     const skip = (page - 1) * limit;
     results = results.slice(skip, skip + limit);
@@ -136,6 +108,25 @@ class SearchService {
     return {
       results,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    };
+  }
+
+  formatNote(row) {
+    if (!row) return null;
+    return {
+      _id: row.id,
+      id: row.id,
+      userId: row.user_id,
+      title: row.title,
+      description: row.description,
+      codeSnippet: row.code_snippet,
+      language: row.language,
+      tags: row.tags || [],
+      sourceUrl: row.source_url,
+      visibility: row.visibility,
+      category: row.category,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     };
   }
 }

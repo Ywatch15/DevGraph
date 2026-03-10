@@ -1,55 +1,52 @@
-const Note = require("../models/Note");
-const TfIdf = require("../utils/tfidf");
+const { supabase } = require("../config/supabase");
+const { TFIDFEngine } = require("../utils/tfidf");
 
 class RelatedService {
-  constructor() {
-    this.tfidf = new TfIdf();
-    this.initialized = false;
-    this.userId = null;
-  }
+  async getRelated(noteId, userId, limit = 5) {
+    // Get target note
+    const { data: note } = await supabase
+      .from("notes")
+      .select("*")
+      .eq("id", noteId)
+      .single();
 
-  /**
-   * Build TF-IDF index for a user's notes
-   */
-  async buildIndex(userId) {
-    this.tfidf = new TfIdf();
-    const notes = await Note.find({ userId })
-      .select("title description tags codeSnippet")
-      .lean();
+    if (!note) return [];
 
-    for (const note of notes) {
-      const text = `${note.title} ${note.description || ""} ${(note.tags || []).join(" ")} ${note.codeSnippet || ""}`;
-      this.tfidf.addDocument(note._id.toString(), text);
+    // Get other user notes
+    const { data: otherNotes } = await supabase
+      .from("notes")
+      .select("*")
+      .eq("user_id", userId)
+      .neq("id", noteId)
+      .limit(100);
+
+    if (!otherNotes || otherNotes.length === 0) return [];
+
+    // Build TF-IDF for similarity
+    const engine = new TFIDFEngine();
+    const noteText = `${note.title} ${note.description || ""} ${(note.tags || []).join(" ")}`;
+    engine.addDocument(note.id, noteText);
+
+    for (const other of otherNotes) {
+      const text = `${other.title} ${other.description || ""} ${(other.tags || []).join(" ")}`;
+      engine.addDocument(other.id, text);
     }
 
-    this.userId = userId.toString();
-    this.initialized = true;
-  }
+    engine.computeIDF();
 
-  /**
-   * Find related notes for a given note
-   */
-  async findRelated(noteId, userId, topN = 5) {
-    if (!this.initialized || this.userId !== userId.toString()) {
-      await this.buildIndex(userId);
-    }
+    const similarities = otherNotes.map((other) => ({
+      _id: other.id,
+      id: other.id,
+      title: other.title,
+      tags: other.tags || [],
+      category: other.category,
+      similarity: engine.cosineSimilarity(note.id, other.id),
+    }));
 
-    const similarDocs = this.tfidf.findSimilar(noteId.toString(), topN);
-
-    if (similarDocs.length === 0) return [];
-
-    const ids = similarDocs.map((d) => d.id);
-    const notes = await Note.find({ _id: { $in: ids } })
-      .select("title tags category updatedAt")
-      .lean();
-
-    // Attach similarity scores
-    return notes
-      .map((note) => {
-        const doc = similarDocs.find((d) => d.id === note._id.toString());
-        return { ...note, similarity: doc ? doc.similarity : 0 };
-      })
-      .sort((a, b) => b.similarity - a.similarity);
+    return similarities
+      .filter((s) => s.similarity > 0.05)
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, limit);
   }
 }
 

@@ -1,58 +1,82 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const config = require("../config/env");
+const { supabase } = require("../config/supabase");
 
 class AuthService {
   async register({ name, email, password }) {
-    // Check for duplicate email
-    const existing = await User.findOne({ email: email.toLowerCase() });
-    if (existing) {
-      const error = new Error("Email already registered");
-      error.statusCode = 409;
+    // Sign up via Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email.toLowerCase(),
+      password,
+      options: {
+        data: { name },
+      },
+    });
+
+    if (authError) {
+      const error = new Error(authError.message);
+      error.statusCode = authError.status || 400;
       throw error;
     }
 
-    const user = await User.create({ name, email, password });
-    const token = this.generateToken(user._id);
+    const user = authData.user;
+    const session = authData.session;
 
-    return { user: user.toJSON(), token };
+    return {
+      user: {
+        _id: user.id,
+        id: user.id,
+        name: user.user_metadata?.name || name,
+        email: user.email,
+        createdAt: user.created_at,
+      },
+      token: session?.access_token || "",
+    };
   }
 
   async login({ email, password }) {
-    const user = await User.findOne({ email: email.toLowerCase() }).select(
-      "+password",
-    );
-    if (!user) {
-      const error = new Error("Invalid email or password");
-      error.statusCode = 401;
-      throw error;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.toLowerCase(),
+      password,
+    });
+
+    if (error) {
+      const err = new Error("Invalid email or password");
+      err.statusCode = 401;
+      throw err;
     }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      const error = new Error("Invalid email or password");
-      error.statusCode = 401;
-      throw error;
-    }
-
-    const token = this.generateToken(user._id);
-    return { user: user.toJSON(), token };
+    const user = data.user;
+    return {
+      user: {
+        _id: user.id,
+        id: user.id,
+        name: user.user_metadata?.name || "",
+        email: user.email,
+        createdAt: user.created_at,
+      },
+      token: data.session.access_token,
+    };
   }
 
   async getProfile(userId) {
-    const user = await User.findById(userId);
-    if (!user) {
-      const error = new Error("User not found");
-      error.statusCode = 404;
-      throw error;
-    }
-    return user.toJSON();
-  }
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
 
-  generateToken(userId) {
-    return jwt.sign({ id: userId }, config.jwtSecret, {
-      expiresIn: config.jwtExpiresIn,
-    });
+    if (error || !data) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    return {
+      _id: data.id,
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      createdAt: data.created_at,
+    };
   }
 }
 

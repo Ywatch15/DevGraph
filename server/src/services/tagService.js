@@ -1,72 +1,75 @@
-const Tag = require("../models/Tag");
+const { supabase } = require("../config/supabase");
 
 class TagService {
+  // Tag counts are now maintained by the database trigger on notes table.
+  // These methods are kept for backward compat but are mostly no-ops.
+
   async updateTagCounts(tags) {
-    if (!tags || tags.length === 0) return;
-
-    const ops = tags.map((name) => ({
-      updateOne: {
-        filter: { name: name.toLowerCase() },
-        update: {
-          $inc: { usageCount: 1 },
-          $setOnInsert: { name: name.toLowerCase() },
-        },
-        upsert: true,
-      },
-    }));
-
-    await Tag.bulkWrite(ops);
+    // No-op: handled by sync_tag_counts trigger
   }
 
   async decrementTagCounts(tags) {
-    if (!tags || tags.length === 0) return;
-
-    const ops = tags.map((name) => ({
-      updateOne: {
-        filter: { name: name.toLowerCase() },
-        update: { $inc: { usageCount: -1 } },
-      },
-    }));
-
-    await Tag.bulkWrite(ops);
-
-    // Clean up tags with 0 or negative count
-    await Tag.deleteMany({ usageCount: { $lte: 0 } });
+    // No-op: handled by sync_tag_counts trigger
   }
 
   async getAll({ page = 1, limit = 50, search } = {}) {
-    const query = {};
+    let query = supabase
+      .from("tags")
+      .select("*", { count: "exact" })
+      .order("usage_count", { ascending: false });
+
     if (search) {
-      query.name = { $regex: search, $options: "i" };
+      query = query.ilike("name", `%${search}%`);
     }
 
-    const skip = (page - 1) * limit;
-    const [tags, total] = await Promise.all([
-      Tag.find(query).sort("-usageCount").skip(skip).limit(limit).lean(),
-      Tag.countDocuments(query),
-    ]);
+    const from = (page - 1) * limit;
+    query = query.range(from, from + limit - 1);
+
+    const { data: tags, count, error } = await query;
 
     return {
-      tags,
-      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+      tags: (tags || []).map(this.formatTag),
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        pages: Math.ceil((count || 0) / limit),
+      },
     };
   }
 
   async suggest(prefix) {
-    if (!prefix || prefix.length < 1) {
-      return Tag.find().sort("-usageCount").limit(10).lean();
+    let query = supabase
+      .from("tags")
+      .select("*")
+      .order("usage_count", { ascending: false })
+      .limit(10);
+
+    if (prefix && prefix.length >= 1) {
+      query = query.ilike("name", `${prefix.toLowerCase()}%`);
     }
 
-    return Tag.find({
-      name: { $regex: `^${prefix.toLowerCase()}`, $options: "i" },
-    })
-      .sort("-usageCount")
-      .limit(10)
-      .lean();
+    const { data } = await query;
+    return (data || []).map(this.formatTag);
   }
 
   async getPopular(limit = 20) {
-    return Tag.find().sort("-usageCount").limit(limit).lean();
+    const { data } = await supabase
+      .from("tags")
+      .select("*")
+      .order("usage_count", { ascending: false })
+      .limit(limit);
+
+    return (data || []).map(this.formatTag);
+  }
+
+  formatTag(row) {
+    return {
+      _id: row.id,
+      name: row.name,
+      usageCount: row.usage_count,
+      createdAt: row.created_at,
+    };
   }
 }
 

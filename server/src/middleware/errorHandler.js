@@ -1,37 +1,49 @@
-const errorHandler = (err, req, res, _next) => {
+/**
+ * Global error handler middleware
+ */
+const errorHandler = (err, req, res, next) => {
   console.error("Error:", err.message);
 
-  // Mongoose validation error
-  if (err.name === "ValidationError") {
-    const messages = Object.values(err.errors).map((e) => e.message);
-    return res
-      .status(400)
-      .json({ error: "Validation failed", details: messages });
+  // Supabase / PostgreSQL errors
+  if (err.code && typeof err.code === "string" && err.code.length === 5) {
+    // PostgreSQL error codes are 5-char strings
+    if (err.code === "23505") {
+      // Unique constraint violation
+      return res
+        .status(409)
+        .json({ error: "A record with this value already exists." });
+    }
+    if (err.code === "23503") {
+      // Foreign key violation
+      return res
+        .status(400)
+        .json({ error: "Referenced record does not exist." });
+    }
+    if (err.code === "23514") {
+      // Check constraint violation
+      return res
+        .status(400)
+        .json({ error: "Invalid value for one or more fields." });
+    }
   }
 
-  // Mongoose duplicate key error
-  if (err.code === 11000) {
-    const field = Object.keys(err.keyPattern)[0];
-    return res.status(409).json({ error: `Duplicate value for ${field}` });
+  // Validation errors (express-validator)
+  if (err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "Invalid JSON in request body." });
   }
 
-  // Mongoose cast error (invalid ObjectId)
-  if (err.name === "CastError") {
-    return res.status(400).json({ error: "Invalid ID format" });
+  // Custom errors with statusCode
+  if (err.statusCode) {
+    return res.status(err.statusCode).json({ error: err.message });
   }
 
-  // JWT errors
-  if (err.name === "JsonWebTokenError") {
-    return res.status(401).json({ error: "Invalid token" });
-  }
+  // Fallback
+  const statusCode = err.status || 500;
+  const message =
+    process.env.NODE_ENV === "production"
+      ? "Internal server error"
+      : err.message;
 
-  if (err.name === "TokenExpiredError") {
-    return res.status(401).json({ error: "Token expired" });
-  }
-
-  // Default
-  const statusCode = err.statusCode || 500;
-  const message = err.statusCode ? err.message : "Internal server error";
   res.status(statusCode).json({ error: message });
 };
 

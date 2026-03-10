@@ -91,7 +91,7 @@ const noteUpdateRules = [
 ];
 
 const idParamRule = [
-  param("id").isMongoId().withMessage("Invalid ID format"),
+  param("id").isUUID().withMessage("Invalid ID format"),
   handleValidation,
 ];
 

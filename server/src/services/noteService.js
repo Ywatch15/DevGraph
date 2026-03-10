@@ -1,25 +1,43 @@
-const Note = require("../models/Note");
-const tagService = require("./tagService");
+const { supabase } = require("../config/supabase");
 const { extractTags } = require("../utils/tagExtractor");
 
 class NoteService {
   async create(userId, data) {
-    // Auto-extract tags from content if none provided
+    // Auto-extract tags if none provided
     if (!data.tags || data.tags.length === 0) {
       const textContent = `${data.title} ${data.description || ""} ${data.codeSnippet || ""}`;
       data.tags = extractTags(textContent);
     }
 
     // Normalize tags
-    data.tags = data.tags.map((t) => t.toLowerCase().trim()).filter(Boolean);
-    data.tags = [...new Set(data.tags)].slice(0, 20);
+    data.tags = [
+      ...new Set(data.tags.map((t) => t.toLowerCase().trim()).filter(Boolean)),
+    ].slice(0, 20);
 
-    const note = await Note.create({ ...data, userId });
+    const { data: note, error } = await supabase
+      .from("notes")
+      .insert({
+        user_id: userId,
+        title: data.title,
+        description: data.description || "",
+        code_snippet: data.codeSnippet || "",
+        language: data.language || "javascript",
+        tags: data.tags,
+        source_url: data.sourceUrl || "",
+        visibility: data.visibility || "private",
+        category: data.category || "other",
+      })
+      .select()
+      .single();
 
-    // Update tag usage counts
-    await tagService.updateTagCounts(data.tags);
+    if (error) {
+      const err = new Error(error.message);
+      err.statusCode = 400;
+      throw err;
+    }
 
-    return note;
+    // Tag counts are handled by the database trigger
+    return this.formatNote(note);
   }
 
   async getAll(
@@ -33,186 +51,251 @@ class NoteService {
       sort = "-updatedAt",
     } = {},
   ) {
-    const query = { userId };
+    let query = supabase
+      .from("notes")
+      .select("*", { count: "exact" })
+      .eq("user_id", userId);
 
     if (tags) {
       const tagList = tags.split(",").map((t) => t.trim().toLowerCase());
-      query.tags = { $in: tagList };
+      query = query.overlaps("tags", tagList);
     }
-    if (category) query.category = category;
-    if (visibility) query.visibility = visibility;
+    if (category) query = query.eq("category", category);
+    if (visibility) query = query.eq("visibility", visibility);
 
-    const skip = (page - 1) * limit;
-    const [notes, total] = await Promise.all([
-      Note.find(query).sort(sort).skip(skip).limit(limit).lean(),
-      Note.countDocuments(query),
-    ]);
+    // Sort
+    const desc = sort.startsWith("-");
+    const sortCol = this.mapSortColumn(sort.replace("-", ""));
+    query = query.order(sortCol, { ascending: !desc });
+
+    // Paginate
+    const from = (page - 1) * limit;
+    query = query.range(from, from + limit - 1);
+
+    const { data: notes, count, error } = await query;
+
+    if (error) {
+      const err = new Error(error.message);
+      err.statusCode = 400;
+      throw err;
+    }
 
     return {
-      notes,
+      notes: (notes || []).map(this.formatNote),
       pagination: {
         page,
         limit,
-        total,
-        pages: Math.ceil(total / limit),
+        total: count || 0,
+        pages: Math.ceil((count || 0) / limit),
       },
     };
   }
 
   async getById(noteId, userId) {
-    const note = await Note.findById(noteId).lean();
+    const { data: note, error } = await supabase
+      .from("notes")
+      .select("*")
+      .eq("id", noteId)
+      .single();
 
-    if (!note) {
-      const error = new Error("Note not found");
-      error.statusCode = 404;
-      throw error;
+    if (error || !note) {
+      const err = new Error("Note not found");
+      err.statusCode = 404;
+      throw err;
     }
 
-    // Check access: must be owner or note must be public
-    if (
-      note.userId.toString() !== userId.toString() &&
-      note.visibility !== "public"
-    ) {
-      const error = new Error("Access denied");
-      error.statusCode = 403;
-      throw error;
+    // Check access
+    if (note.user_id !== userId && note.visibility !== "public") {
+      const err = new Error("Access denied");
+      err.statusCode = 403;
+      throw err;
     }
 
-    return note;
+    return this.formatNote(note);
   }
 
   async update(noteId, userId, data) {
-    const note = await Note.findOne({ _id: noteId, userId });
-    if (!note) {
-      const error = new Error("Note not found");
-      error.statusCode = 404;
-      throw error;
+    // Check ownership
+    const { data: existing, error: findError } = await supabase
+      .from("notes")
+      .select("id")
+      .eq("id", noteId)
+      .eq("user_id", userId)
+      .single();
+
+    if (findError || !existing) {
+      const err = new Error("Note not found");
+      err.statusCode = 404;
+      throw err;
     }
 
-    // If tags changed, normalize them
+    // Normalize tags
     if (data.tags) {
-      const oldTags = note.tags;
-      data.tags = data.tags.map((t) => t.toLowerCase().trim()).filter(Boolean);
-      data.tags = [...new Set(data.tags)].slice(0, 20);
-
-      // Update tag counts
-      await tagService.decrementTagCounts(oldTags);
-      await tagService.updateTagCounts(data.tags);
+      data.tags = [
+        ...new Set(
+          data.tags.map((t) => t.toLowerCase().trim()).filter(Boolean),
+        ),
+      ].slice(0, 20);
     }
 
-    Object.assign(note, data);
-    await note.save();
-    return note;
+    const updateData = {};
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.description !== undefined)
+      updateData.description = data.description;
+    if (data.codeSnippet !== undefined)
+      updateData.code_snippet = data.codeSnippet;
+    if (data.language !== undefined) updateData.language = data.language;
+    if (data.tags !== undefined) updateData.tags = data.tags;
+    if (data.sourceUrl !== undefined) updateData.source_url = data.sourceUrl;
+    if (data.visibility !== undefined) updateData.visibility = data.visibility;
+    if (data.category !== undefined) updateData.category = data.category;
+
+    const { data: note, error } = await supabase
+      .from("notes")
+      .update(updateData)
+      .eq("id", noteId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      const err = new Error(error.message);
+      err.statusCode = 400;
+      throw err;
+    }
+
+    // Tag counts updated automatically by trigger
+    return this.formatNote(note);
   }
 
   async delete(noteId, userId) {
-    const note = await Note.findOneAndDelete({ _id: noteId, userId });
-    if (!note) {
-      const error = new Error("Note not found");
-      error.statusCode = 404;
-      throw error;
+    const { data: note, error } = await supabase
+      .from("notes")
+      .delete()
+      .eq("id", noteId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error || !note) {
+      const err = new Error("Note not found");
+      err.statusCode = 404;
+      throw err;
     }
 
-    // Decrement tag counts
-    await tagService.decrementTagCounts(note.tags);
-    return note;
+    // Tag counts decremented automatically by trigger
+    return this.formatNote(note);
   }
 
   async getPublicFeed({ page = 1, limit = 20, tags } = {}) {
-    const query = { visibility: "public" };
+    let query = supabase
+      .from("notes")
+      .select("*, profiles!notes_user_id_fkey(name)", { count: "exact" })
+      .eq("visibility", "public")
+      .order("updated_at", { ascending: false });
+
     if (tags) {
       const tagList = tags.split(",").map((t) => t.trim().toLowerCase());
-      query.tags = { $in: tagList };
+      query = query.overlaps("tags", tagList);
     }
 
-    const skip = (page - 1) * limit;
-    const [notes, total] = await Promise.all([
-      Note.find(query)
-        .sort("-updatedAt")
-        .skip(skip)
-        .limit(limit)
-        .populate("userId", "name")
-        .lean(),
-      Note.countDocuments(query),
-    ]);
+    const from = (page - 1) * limit;
+    query = query.range(from, from + limit - 1);
+
+    const { data: notes, count, error } = await query;
 
     return {
-      notes,
-      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+      notes: (notes || []).map((n) => {
+        const formatted = this.formatNote(n);
+        formatted.userId = n.profiles ? { name: n.profiles.name } : null;
+        return formatted;
+      }),
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        pages: Math.ceil((count || 0) / limit),
+      },
     };
   }
 
   async getUserStats(userId) {
-    const [total, publicCount, categories, recentNotes] = await Promise.all([
-      Note.countDocuments({ userId }),
-      Note.countDocuments({ userId, visibility: "public" }),
-      Note.aggregate([
-        {
-          $match: {
-            userId: require("mongoose").Types.ObjectId.createFromHexString(
-              userId.toString(),
-            ),
-          },
-        },
-        { $group: { _id: "$category", count: { $sum: 1 } } },
-      ]),
-      Note.find({ userId })
-        .sort("-updatedAt")
-        .limit(5)
-        .select("title tags category updatedAt")
-        .lean(),
-    ]);
+    // Parallel queries
+    const [totalRes, publicRes, categoriesRes, recentRes, tagRes, timelineRes] =
+      await Promise.all([
+        supabase
+          .from("notes")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId),
+        supabase
+          .from("notes")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("visibility", "public"),
+        supabase.rpc("get_user_category_counts", { uid: userId }),
+        supabase
+          .from("notes")
+          .select("id, title, tags, category, updated_at")
+          .eq("user_id", userId)
+          .order("updated_at", { ascending: false })
+          .limit(5),
+        supabase.rpc("get_user_tag_counts", { uid: userId, lim: 15 }),
+        supabase.rpc("get_user_timeline", { uid: userId }),
+      ]);
 
-    // Tag frequency
-    const tagPipeline = await Note.aggregate([
-      {
-        $match: {
-          userId: require("mongoose").Types.ObjectId.createFromHexString(
-            userId.toString(),
-          ),
-        },
-      },
-      { $unwind: "$tags" },
-      { $group: { _id: "$tags", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 15 },
-    ]);
+    const total = totalRes.count || 0;
+    const publicCount = publicRes.count || 0;
 
-    // Timeline data (notes per month)
-    const timeline = await Note.aggregate([
-      {
-        $match: {
-          userId: require("mongoose").Types.ObjectId.createFromHexString(
-            userId.toString(),
-          ),
-        },
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { "_id.year": 1, "_id.month": 1 } },
-    ]);
+    const categories = {};
+    (categoriesRes.data || []).forEach((c) => {
+      categories[c.category] = Number(c.count);
+    });
 
     return {
       total,
       publicCount,
       privateCount: total - publicCount,
-      categories: categories.reduce((acc, c) => {
-        acc[c._id] = c.count;
-        return acc;
-      }, {}),
-      topTags: tagPipeline.map((t) => ({ name: t._id, count: t.count })),
-      recentNotes,
-      timeline: timeline.map((t) => ({
-        month: `${t._id.year}-${String(t._id.month).padStart(2, "0")}`,
-        count: t.count,
+      categories,
+      topTags: (tagRes.data || []).map((t) => ({
+        name: t.tag,
+        count: Number(t.count),
       })),
+      recentNotes: (recentRes.data || []).map(this.formatNote),
+      timeline: (timelineRes.data || []).map((t) => ({
+        month: t.month,
+        count: Number(t.count),
+      })),
+    };
+  }
+
+  // Map frontend field names to Supabase column names
+  mapSortColumn(field) {
+    const map = {
+      updatedAt: "updated_at",
+      createdAt: "created_at",
+      title: "title",
+    };
+    return map[field] || "updated_at";
+  }
+
+  // Transform Supabase row to frontend-expected shape
+  formatNote(row) {
+    if (!row) return null;
+    return {
+      _id: row.id,
+      id: row.id,
+      userId: row.user_id,
+      title: row.title,
+      description: row.description,
+      codeSnippet: row.code_snippet,
+      language: row.language,
+      tags: row.tags || [],
+      sourceUrl: row.source_url,
+      visibility: row.visibility,
+      category: row.category,
+      relatedNotes: row.related_notes || [],
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     };
   }
 }

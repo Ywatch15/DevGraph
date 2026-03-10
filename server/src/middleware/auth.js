@@ -1,37 +1,39 @@
-const jwt = require("jsonwebtoken");
-const config = require("../config/env");
-const User = require("../models/User");
+const { supabase } = require("../config/supabase");
 
+/**
+ * Authentication middleware using Supabase Auth.
+ * Expects: Authorization: Bearer <supabase_access_token>
+ */
 const auth = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
+    const authHeader = req.header("Authorization");
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res
         .status(401)
         .json({ error: "Access denied. No token provided." });
     }
 
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, config.jwtSecret);
+    const token = authHeader.replace("Bearer ", "");
 
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      return res.status(401).json({ error: "User not found. Token invalid." });
+    // Verify the token with Supabase
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error || !data?.user) {
+      return res.status(401).json({ error: "Invalid or expired token." });
     }
 
-    req.user = user;
-    req.userId = user._id;
+    req.user = {
+      id: data.user.id,
+      _id: data.user.id,
+      email: data.user.email,
+      name: data.user.user_metadata?.name || "",
+    };
+
     next();
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return res
-        .status(401)
-        .json({ error: "Token expired. Please login again." });
-    }
-    if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token." });
-    }
-    return res.status(500).json({ error: "Authentication failed." });
+    console.error("Auth middleware error:", error.message);
+    return res.status(401).json({ error: "Authentication failed." });
   }
 };
 
