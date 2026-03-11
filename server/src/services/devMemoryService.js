@@ -1,5 +1,5 @@
 const { supabase } = require("../config/supabase");
-const { TFIDFEngine } = require("../utils/tfidf");
+const TfIdf = require("../utils/tfidf");
 
 class DevMemoryService {
   /**
@@ -19,7 +19,7 @@ class DevMemoryService {
     if (!notes || notes.length === 0) return [];
 
     // TF-IDF similarity
-    const engine = new TFIDFEngine();
+    const engine = new TfIdf();
     engine.addDocument("__query__", errorText);
 
     for (const note of notes) {
@@ -27,7 +27,7 @@ class DevMemoryService {
       engine.addDocument(note.id, text);
     }
 
-    engine.computeIDF();
+    engine.computeIdf();
 
     const matches = notes.map((note) => ({
       _id: note.id,
@@ -38,7 +38,7 @@ class DevMemoryService {
       tags: note.tags || [],
       category: note.category,
       matchScore: Math.round(
-        engine.cosineSimilarity("__query__", note.id) * 100,
+        engine.similarity("__query__", note.id) * 100,
       ),
     }));
 

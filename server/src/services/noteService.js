@@ -298,6 +298,51 @@ class NoteService {
       updatedAt: row.updated_at,
     };
   }
+  // Get public feed of all users' public notes
+  async getPublicFeed({ page = 1, limit = 20, tags } = {}) {
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    let query = supabase
+      .from("notes")
+      .select("*", { count: "exact" })
+      .eq("visibility", "public")
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (tags) {
+      const tagArray = Array.isArray(tags) ? tags : tags.split(",");
+      query = query.overlaps("tags", tagArray);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) throw error;
+
+    // Look up author names from profiles
+    const userIds = [...new Set((data || []).map((n) => n.user_id))];
+    const profileMap = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name")
+        .in("id", userIds);
+      for (const p of profiles || []) {
+        profileMap[p.id] = p.name || "Anonymous";
+      }
+    }
+
+    return {
+      notes: (data || []).map((row) => ({
+        ...this.formatNote(row),
+        author: profileMap[row.user_id] || "Anonymous",
+      })),
+      total: count || 0,
+      page,
+      totalPages: Math.ceil((count || 0) / limit),
+    };
+  }
+
 }
 
 module.exports = new NoteService();

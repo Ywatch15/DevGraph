@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import ConditionalBackground from "@/components/ConditionalBackground";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -28,7 +29,10 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <ConditionalBackground />
+          {children}
+        </Providers>
       </body>
     </html>
   );

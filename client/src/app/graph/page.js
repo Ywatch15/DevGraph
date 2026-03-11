@@ -18,7 +18,7 @@ const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
   loading: () => (
     <div
-      className="h-[600px] shimmer rounded-lg"
+      className="h-150 shimmer rounded-lg"
       style={{ background: "var(--color-bg-tertiary)" }}
     />
   ),
@@ -190,7 +190,7 @@ export default function GraphPage() {
         }}
       >
         {isLoading ? (
-          <div className="h-[600px] flex items-center justify-center">
+          <div className="h-150 flex items-center justify-center">
             <Loader2
               size={32}
               className="animate-spin"
@@ -198,7 +198,7 @@ export default function GraphPage() {
             />
           </div>
         ) : filteredData.nodes.length === 0 ? (
-          <div className="h-[400px] flex flex-col items-center justify-center">
+          <div className="h-100 flex flex-col items-center justify-center">
             <Maximize2
               size={40}
               className="mb-3"

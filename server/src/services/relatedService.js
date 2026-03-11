@@ -1,5 +1,5 @@
 const { supabase } = require("../config/supabase");
-const { TFIDFEngine } = require("../utils/tfidf");
+const TfIdf = require("../utils/tfidf");
 
 class RelatedService {
   async getRelated(noteId, userId, limit = 5) {
@@ -23,7 +23,7 @@ class RelatedService {
     if (!otherNotes || otherNotes.length === 0) return [];
 
     // Build TF-IDF for similarity
-    const engine = new TFIDFEngine();
+    const engine = new TfIdf();
     const noteText = `${note.title} ${note.description || ""} ${(note.tags || []).join(" ")}`;
     engine.addDocument(note.id, noteText);
 
@@ -32,7 +32,7 @@ class RelatedService {
       engine.addDocument(other.id, text);
     }
 
-    engine.computeIDF();
+    engine.computeIdf();
 
     const similarities = otherNotes.map((other) => ({
       _id: other.id,
@@ -40,7 +40,7 @@ class RelatedService {
       title: other.title,
       tags: other.tags || [],
       category: other.category,
-      similarity: engine.cosineSimilarity(note.id, other.id),
+      similarity: engine.similarity(note.id, other.id),
     }));
 
     return similarities

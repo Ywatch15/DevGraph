@@ -57,13 +57,13 @@ export default function AppShell({ children }) {
   return (
     <div
       className="min-h-screen"
-      style={{ background: "var(--color-bg-primary)" }}
+      style={{ background: "transparent" }}
     >
       <Sidebar />
       <CommandPalette />
 
       {/* Main content area */}
-      <main className="md:ml-[240px] min-h-screen pb-20 md:pb-0">
+      <main className="md:ml-60 min-h-screen pb-20 md:pb-0">
         <div className="max-w-7xl mx-auto">{children}</div>
       </main>
 
