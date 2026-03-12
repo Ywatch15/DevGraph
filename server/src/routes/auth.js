@@ -2,11 +2,11 @@ const express = require("express");
 const router = express.Router();
 const authService = require("../services/authService");
 const auth = require("../middleware/auth");
-const { loginLimiter } = require("../middleware/rateLimiter");
+const { loginLimiter, registerLimiter } = require("../middleware/rateLimiter");
 const { registerRules, loginRules } = require("../utils/validators");
 
 // POST /api/auth/register
-router.post("/register", registerRules, async (req, res, next) => {
+router.post("/register", registerLimiter, registerRules, async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
     const result = await authService.register({ name, email, password });

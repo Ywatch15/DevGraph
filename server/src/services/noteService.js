@@ -51,6 +51,8 @@ class NoteService {
       sort = "-updatedAt",
     } = {},
   ) {
+    // Cap limit to prevent data-dump attacks
+    limit = Math.min(Math.max(1, limit), 100);
     let query = supabase
       .from("notes")
       .select("*", { count: "exact" })
@@ -188,6 +190,9 @@ class NoteService {
   }
 
   async getPublicFeed({ page = 1, limit = 20, tags } = {}) {
+    // Cap limit to prevent data-dump attacks
+    limit = Math.min(Math.max(1, limit), 100);
+
     let query = supabase
       .from("notes")
       .select("*, profiles!notes_user_id_fkey(name)", { count: "exact" })

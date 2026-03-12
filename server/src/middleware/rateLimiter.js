@@ -10,6 +10,16 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5,
+  message: {
+    error: "Too many registration attempts. Please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   max: 100,
@@ -26,4 +36,4 @@ const searchLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { loginLimiter, apiLimiter, searchLimiter };
+module.exports = { loginLimiter, registerLimiter, apiLimiter, searchLimiter };

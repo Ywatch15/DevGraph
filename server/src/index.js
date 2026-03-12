@@ -2,6 +2,7 @@ const express = require("express");
 const config = require("./config/env");
 const setupSecurity = require("./middleware/security");
 const errorHandler = require("./middleware/errorHandler");
+const { apiLimiter } = require("./middleware/rateLimiter");
 
 // Routes
 const authRoutes = require("./routes/auth");
@@ -16,9 +17,12 @@ const app = express();
 // Security middleware
 setupSecurity(app);
 
-// Body parsing
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
+// Body parsing — 1MB limit (sufficient for code snippets; prevents payload abuse)
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
+
+// Global rate limiter — 100 req/min per IP across all routes
+app.use("/api", apiLimiter);
 
 // Health check
 app.get("/api/health", (req, res) => {

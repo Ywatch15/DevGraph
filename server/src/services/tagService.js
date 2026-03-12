@@ -13,6 +13,9 @@ class TagService {
   }
 
   async getAll({ page = 1, limit = 50, search } = {}) {
+    // Cap limit to prevent data-dump attacks
+    limit = Math.min(Math.max(1, limit), 100);
+
     let query = supabase
       .from("tags")
       .select("*", { count: "exact" })

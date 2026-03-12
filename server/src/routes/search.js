@@ -23,15 +23,17 @@ router.get("/", auth, searchLimiter, searchRules, async (req, res, next) => {
 });
 
 // POST /api/search/error-match
-router.post("/error-match", auth, async (req, res, next) => {
+router.post("/error-match", auth, searchLimiter, async (req, res, next) => {
   try {
     const { errorText } = req.body;
-    if (!errorText || errorText.trim().length < 3) {
+    if (!errorText || typeof errorText !== "string" || errorText.trim().length < 3) {
       return res
         .status(400)
         .json({ error: "Error text must be at least 3 characters" });
     }
-    const results = await devMemoryService.matchError(req.userId, errorText);
+    // Cap input length to prevent memory/CPU abuse in TF-IDF
+    const sanitizedText = errorText.slice(0, 5000);
+    const results = await devMemoryService.matchError(req.userId, sanitizedText);
     res.json(results);
   } catch (error) {
     next(error);
@@ -39,9 +41,12 @@ router.post("/error-match", auth, async (req, res, next) => {
 });
 
 // POST /api/search/suggest
-router.post("/suggest", auth, async (req, res, next) => {
+router.post("/suggest", auth, searchLimiter, async (req, res, next) => {
   try {
     const { text } = req.body;
+    if (text && typeof text === "string" && text.length > 5000) {
+      return res.status(400).json({ error: "Text too long" });
+    }
     const results = await devMemoryService.getSuggestions(req.userId, text);
     res.json(results);
   } catch (error) {

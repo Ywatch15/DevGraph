@@ -3,7 +3,7 @@ const TfIdf = require("../utils/tfidf");
 
 class RelatedService {
   async getRelated(noteId, userId, limit = 5) {
-    // Get target note
+    // Get target note — scoped to user to prevent IDOR
     const { data: note } = await supabase
       .from("notes")
       .select("*")
@@ -11,6 +11,9 @@ class RelatedService {
       .single();
 
     if (!note) return [];
+
+    // Ownership check: only allow owner or public notes
+    if (note.user_id !== userId && note.visibility !== "public") return [];
 
     // Get other user notes
     const { data: otherNotes } = await supabase

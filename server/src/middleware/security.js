@@ -1,5 +1,6 @@
 const helmet = require("helmet");
 const cors = require("cors");
+const xssFilters = require("xss-filters");
 
 const setupSecurity = (app) => {
   // Helmet for security headers
@@ -25,25 +26,32 @@ const setupSecurity = (app) => {
     }),
   );
 
-  // Body parser limits for XSS protection
+  // XSS protection — sanitize string values in request body
+  // Skip code-content fields (codeSnippet, code_snippet, errorText) that are rendered
+  // in code editors, not as raw HTML
+  const CODE_FIELDS = new Set(["codeSnippet", "code_snippet", "errorText"]);
+
   app.use((req, res, next) => {
     if (typeof req.body === "object" && req.body !== null) {
-      sanitizeObject(req.body);
+      sanitizeObject(req.body, CODE_FIELDS);
     }
     next();
   });
 };
 
-function sanitizeObject(obj) {
+function sanitizeObject(obj, skipFields) {
   for (const key in obj) {
+    if (skipFields && skipFields.has(key)) continue;
     if (typeof obj[key] === "string") {
-      // Basic XSS sanitization — strip script tags
-      obj[key] = obj[key]
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-        .replace(/on\w+\s*=\s*"[^"]*"/gi, "")
-        .replace(/on\w+\s*=\s*'[^']*'/gi, "");
+      obj[key] = xssFilters.inHTMLData(obj[key]);
+    } else if (Array.isArray(obj[key])) {
+      obj[key] = obj[key].map((item) => {
+        if (typeof item === "string") return xssFilters.inHTMLData(item);
+        if (typeof item === "object" && item !== null) sanitizeObject(item, skipFields);
+        return item;
+      });
     } else if (typeof obj[key] === "object" && obj[key] !== null) {
-      sanitizeObject(obj[key]);
+      sanitizeObject(obj[key], skipFields);
     }
   }
 }

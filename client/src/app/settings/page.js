@@ -235,7 +235,7 @@ export default function SettingsPage() {
           >
             DevGraph is your personal developer knowledge graph — capture, search,
             connect, and share programming knowledge. 100% free, no paid APIs.
-            Built with Next.js, Express, and MongoDB.
+            Built with Next.js, Express, and SupaBase.
           </p>
         </AccordionCard>
       </div>
