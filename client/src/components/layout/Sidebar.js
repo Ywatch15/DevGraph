@@ -45,7 +45,8 @@ export default function Sidebar() {
       }}
     >
       {/* Logo */}
-      <div
+      <Link
+        href="/"
         className="flex items-center gap-3 px-4 h-16 border-b"
         style={{ borderColor: "var(--color-border)" }}
       >
@@ -65,7 +66,7 @@ export default function Sidebar() {
             DevGraph
           </span>
         )}
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
@@ -137,21 +138,21 @@ export default function Sidebar() {
             </div>
           </div>
         )}
-        <div className="flex gap-1">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="btn-ghost flex-1 justify-center"
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
+        <div className={`flex ${collapsed ? "flex-col" : "flex-row"} gap-1`}>
           <button
             onClick={logout}
-            className="btn-ghost flex-1 justify-center"
+            className={`btn-ghost justify-center ${collapsed ? "w-full" : "flex-1"}`}
             title="Logout"
           >
             <LogOut size={16} />
             {!collapsed && <span>Logout</span>}
+          </button>
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className={`btn-ghost justify-center ${collapsed ? "w-full" : "flex-1"}`}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
         </div>
       </div>

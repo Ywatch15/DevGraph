@@ -1,10 +1,13 @@
 "use client";
 import Link from "next/link";
-import { Zap, ArrowRight, GitFork, Search, Code2, Globe } from "lucide-react";
+import { Zap, ArrowRight, GitFork, Search, Code2, Globe, LayoutDashboard } from "lucide-react";
 import Squares from "@/components/ui/Squares";
 import { GlowCard } from "@/components/ui/spotlight-card";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LandingPage() {
+  const { user } = useAuth();
+
   return (
     <div
       className="min-h-screen flex flex-col relative overflow-hidden"
@@ -23,7 +26,7 @@ export default function LandingPage() {
 
       {/* Hero Nav */}
       <header className="relative z-10 flex items-center justify-between px-6 md:px-12 h-16">
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center"
             style={{
@@ -39,14 +42,22 @@ export default function LandingPage() {
           >
             DevGraph
           </span>
-        </div>
+        </Link>
         <div className="flex items-center gap-3">
-          <Link href="/login" className="btn-ghost">
-            Sign In
-          </Link>
-          <Link href="/register" className="btn-primary">
-            Get Started <ArrowRight size={14} />
-          </Link>
+          {user ? (
+            <Link href="/dashboard" className="btn-primary">
+              <LayoutDashboard size={14} /> Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="btn-ghost">
+                Sign In
+              </Link>
+              <Link href="/register" className="btn-primary">
+                Get Started <ArrowRight size={14} />
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
