@@ -90,7 +90,7 @@ export default function SearchPage() {
       >
         <button
           onClick={() => setTab("search")}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold uppercase transition-all ${tab === "search" ? "text-white" : ""}`}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold uppercase transition-all ${tab === "search" ? "text-white" : ""}`}
           style={{
             background:
               tab === "search" ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "transparent",
@@ -103,7 +103,7 @@ export default function SearchPage() {
         </button>
         <button
           onClick={() => setTab("error")}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold uppercase transition-all`}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold uppercase transition-all`}
           style={{
             background: tab === "error" ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "transparent",
             color: tab === "error" ? "white" : "var(--color-text-secondary)",
@@ -140,7 +140,7 @@ export default function SearchPage() {
           </div>
 
           {results.length > 0 && (
-            <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
               {results.length} results found
             </p>
           )}
@@ -164,7 +164,7 @@ export default function SearchPage() {
                     </h3>
                     {r.description && (
                       <p
-                        className="text-xs line-clamp-2 mb-2"
+                        className="text-sm line-clamp-2 mb-2"
                         style={{ color: "var(--color-text-muted)" }}
                       >
                         {r.description}
@@ -201,6 +201,20 @@ export default function SearchPage() {
         </>
       ) : (
         <>
+          <div
+            className="flex items-start gap-2.5 px-4 py-3 rounded-xl text-sm max-w-2xl"
+            style={{
+              background: "var(--color-bg-tertiary)",
+              border: "1px solid var(--color-border)",
+              color: "var(--color-text-muted)",
+            }}
+          >
+            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#f59e0b" }} />
+            <span>
+              Error Matcher searches through your saved notes to find past solutions. It only works if you&apos;ve previously saved notes about related bugs, fixes, or error resolutions.
+            </span>
+          </div>
+
           <div className="max-w-2xl space-y-3">
             <textarea
               value={errorText}
@@ -240,7 +254,7 @@ export default function SearchPage() {
                 </div>
                 {r.description && (
                   <p
-                    className="text-xs mb-2 line-clamp-3"
+                    className="text-sm mb-2 line-clamp-3"
                     style={{ color: "var(--color-text-muted)" }}
                   >
                     {r.description}
@@ -249,7 +263,7 @@ export default function SearchPage() {
                 {r.codeSnippet && (
                   <div className="relative">
                     <pre
-                      className="rounded-md px-3 py-2 text-xs overflow-x-auto"
+                      className="rounded-md px-3 py-2 text-sm overflow-x-auto"
                       style={{
                         background: "var(--color-bg-primary)",
                         fontFamily: "var(--font-mono)",
@@ -260,7 +274,7 @@ export default function SearchPage() {
                     </pre>
                     <button
                       onClick={() => copySnippet(r.codeSnippet, r._id)}
-                      className="absolute top-2 right-2 btn-ghost text-xs"
+                      className="absolute top-2 right-2 btn-ghost text-sm"
                     >
                       {copiedId === r._id ? (
                         <Check size={12} />

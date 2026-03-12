@@ -81,7 +81,7 @@ export default function AppShell({ children }) {
                 <span key={i} className="flex items-center gap-1.5">
                   <ChevronRight size={12} style={{ color: "var(--color-text-muted)" }} />
                   <span
-                    className="text-xs font-medium"
+                    className="text-sm font-medium"
                     style={{
                       color: i === breadcrumbs.length - 1
                         ? "var(--color-text-primary)"

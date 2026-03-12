@@ -65,7 +65,7 @@ export default function LandingPage() {
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center">
         <div className="animate-fadeIn max-w-3xl">
           <div
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-6 text-xs font-medium"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-6 text-sm font-medium"
             style={{
               background: "rgba(124,92,252,0.12)",
               color: "var(--color-accent-hover)",
@@ -154,7 +154,7 @@ export default function LandingPage() {
                   {f.title}
                 </h3>
                 <p
-                  className="text-xs"
+                  className="text-sm"
                   style={{ color: "var(--color-text-secondary)" }}
                 >
                   {f.desc}
@@ -167,7 +167,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer
-        className="relative z-10 py-6 text-center text-xs"
+        className="relative z-10 py-6 text-center text-sm"
         style={{ color: "var(--color-text-muted)" }}
       >
         Built with ♥ for developers · Solve it once. Remember it forever.

@@ -105,7 +105,7 @@ export default function NotesListPage() {
       {filterTag && (
         <div className="flex items-center gap-2">
           <span
-            className="text-xs"
+            className="text-sm"
             style={{ color: "var(--color-text-muted)" }}
           >
             Filtered by tag:
@@ -174,7 +174,7 @@ export default function NotesListPage() {
                 </h3>
                 {note.description && (
                   <p
-                    className="text-xs mb-3 line-clamp-2 flex-1"
+                    className="text-sm mb-3 line-clamp-2 flex-1"
                     style={{ color: "var(--color-text-muted)" }}
                   >
                     {note.description}
@@ -182,7 +182,7 @@ export default function NotesListPage() {
                 )}
                 {note.codeSnippet && (
                   <div
-                    className="rounded-md px-3 py-2 mb-3 text-xs line-clamp-3 overflow-hidden"
+                    className="rounded-md px-3 py-2 mb-3 text-sm line-clamp-3 overflow-hidden"
                     style={{
                       background: "var(--color-bg-primary)",
                       fontFamily: "var(--font-mono)",
@@ -200,7 +200,7 @@ export default function NotesListPage() {
                   ))}
                 </div>
                 <p
-                  className="text-[10px] mt-2"
+                  className="text-xs mt-2"
                   style={{ color: "var(--color-text-muted)" }}
                 >
                   {new Date(note.updatedAt).toLocaleDateString()}
@@ -234,7 +234,7 @@ export default function NotesListPage() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="btn-secondary text-xs"
+            className="btn-secondary text-sm"
           >
             Previous
           </button>
@@ -247,7 +247,7 @@ export default function NotesListPage() {
           <button
             onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
             disabled={page >= pagination.pages}
-            className="btn-secondary text-xs"
+            className="btn-secondary text-sm"
           >
             Next
           </button>

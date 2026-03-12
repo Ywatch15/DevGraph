@@ -236,7 +236,7 @@ export default function GraphPage() {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-xs">
+      <div className="flex flex-wrap gap-4 text-sm">
         {Object.entries(CATEGORY_COLORS).map(([cat, color]) => (
           <div key={cat} className="flex items-center gap-1.5">
             <div

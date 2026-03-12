@@ -157,7 +157,7 @@ export default function DashboardPage() {
                     className="w-2 h-2 rounded-full animate-pulse-dot"
                     style={{ background: "#10b981" }}
                   />
-                  <span className="text-xs" style={{ color: "#10b981" }}>Live</span>
+                  <span className="text-sm" style={{ color: "#10b981" }}>Live</span>
                 </div>
               )}
             </div>
@@ -189,7 +189,7 @@ export default function DashboardPage() {
             </h3>
             <Link
               href="/notes"
-              className="text-xs font-medium flex items-center gap-1"
+              className="text-sm font-medium flex items-center gap-1"
               style={{ color: "var(--color-accent)" }}
             >
               View all <ArrowRight size={12} />
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <span
-                      className="text-xs flex-shrink-0"
+                      className="text-sm flex-shrink-0"
                       style={{ color: "var(--color-text-muted)" }}
                     >
                       {new Date(note.updatedAt).toLocaleDateString()}
@@ -271,7 +271,7 @@ export default function DashboardPage() {
                 ))
               ) : (
                 <p
-                  className="text-xs"
+                  className="text-sm"
                   style={{ color: "var(--color-text-muted)" }}
                 >
                   No tags yet
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                     ? Math.round((count / stats.total) * 100)
                     : 0;
                 return (
-                  <div key={key} className="flex items-center gap-3 text-xs">
+                  <div key={key} className="flex items-center gap-3 text-sm">
                     <span>{cat.icon}</span>
                     <span
                       className="flex-1"
@@ -325,7 +325,7 @@ export default function DashboardPage() {
               })}
               {Object.keys(stats?.categories || {}).length === 0 && (
                 <p
-                  className="text-xs"
+                  className="text-sm"
                   style={{ color: "var(--color-text-muted)" }}
                 >
                   No categories yet

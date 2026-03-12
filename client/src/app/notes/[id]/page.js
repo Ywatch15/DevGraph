@@ -211,7 +211,7 @@ export default function NoteEditorPage({ params }) {
             onClick={() =>
               setVisibility(visibility === "private" ? "public" : "private")
             }
-            className="btn-secondary text-xs"
+            className="btn-secondary text-sm"
           >
             {visibility === "public" ? (
               <>
@@ -305,13 +305,13 @@ export default function NoteEditorPage({ params }) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label
-                className="text-xs font-semibold"
+                className="text-sm font-semibold"
                 style={{ color: "var(--color-text-secondary)" }}
               >
                 Code Snippet
               </label>
               {codeSnippet && (
-                <button onClick={copySnippet} className="btn-ghost text-xs">
+                <button onClick={copySnippet} className="btn-ghost text-sm">
                   {copied ? <Check size={13} /> : <Copy size={13} />}
                   {copied ? "Copied!" : "Copy"}
                 </button>
@@ -353,7 +353,7 @@ export default function NoteEditorPage({ params }) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label
-                className="text-xs font-semibold"
+                className="text-sm font-semibold"
                 style={{ color: "var(--color-text-secondary)" }}
               >
                 Tags{" "}
@@ -363,7 +363,7 @@ export default function NoteEditorPage({ params }) {
               </label>
               <button
                 onClick={() => setShowPresetTags(!showPresetTags)}
-                className="btn-ghost text-xs"
+                className="btn-ghost text-sm"
               >
                 <ChevronDown
                   size={13}
@@ -394,7 +394,7 @@ export default function NoteEditorPage({ params }) {
                 ))}
                 {availablePresets.length === 0 && (
                   <p
-                    className="text-xs"
+                    className="text-sm"
                     style={{ color: "var(--color-text-muted)" }}
                   >
                     All popular tags are already added!
@@ -463,7 +463,7 @@ export default function NoteEditorPage({ params }) {
                     >
                       <span>{s.name}</span>
                       <span
-                        className="text-xs"
+                        className="text-sm"
                         style={{ color: "var(--color-text-muted)" }}
                       >
                         used {s.usageCount}×
@@ -481,7 +481,7 @@ export default function NoteEditorPage({ params }) {
           {/* Related notes */}
           <div className="card" style={{ borderRadius: "1.25rem" }}>
             <h3
-              className="font-semibold text-xs flex items-center gap-1.5 mb-3"
+              className="font-semibold text-sm flex items-center gap-1.5 mb-3"
               style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
             >
               <Zap size={13} style={{ color: "#7c3aed" }} /> Related
@@ -492,7 +492,7 @@ export default function NoteEditorPage({ params }) {
                 <a
                   key={rn._id}
                   href={`/notes/${rn._id}`}
-                  className="block px-2 py-2 rounded-md text-xs mb-1 transition-colors"
+                  className="block px-2 py-2 rounded-md text-sm mb-1 transition-colors"
                   style={{ color: "var(--color-text-secondary)" }}
                   onMouseEnter={(e) =>
                     (e.target.style.background = "var(--color-bg-hover)")
@@ -504,7 +504,7 @@ export default function NoteEditorPage({ params }) {
                   {rn.title}
                   {rn.similarity > 0 && (
                     <span
-                      className="ml-1 text-[10px]"
+                      className="ml-1 text-xs"
                       style={{ color: "var(--color-accent)" }}
                     >
                       {Math.round(rn.similarity * 100)}%
@@ -514,7 +514,7 @@ export default function NoteEditorPage({ params }) {
               ))
             ) : (
               <p
-                className="text-xs"
+                className="text-sm"
                 style={{ color: "var(--color-text-muted)" }}
               >
                 {isNew ? "Save to see related notes" : "No related notes found"}
@@ -525,13 +525,13 @@ export default function NoteEditorPage({ params }) {
           {/* Quick tips */}
           <div className="card" style={{ borderRadius: "1.25rem" }}>
             <h3
-              className="font-semibold text-xs mb-3"
+              className="font-semibold text-sm mb-3"
               style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
             >
               💡 Tips
             </h3>
             <ul
-              className="space-y-1.5 text-xs"
+              className="space-y-1.5 text-sm"
               style={{ color: "var(--color-text-muted)" }}
             >
 

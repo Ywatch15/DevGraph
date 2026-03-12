@@ -47,7 +47,7 @@ export default function MobileNav() {
                   <Icon size={22} color="white" />
                 </div>
                 <span
-                  className="text-[10px] font-medium"
+                  className="text-xs font-medium"
                   style={{ color: "var(--color-accent-hover)" }}
                 >
                   {tab.label}
@@ -71,7 +71,7 @@ export default function MobileNav() {
                 }}
               />
               <span
-                className="text-[10px] font-medium"
+                className="text-xs font-medium"
                 style={{
                   color: isActive
                     ? "var(--color-accent-hover)"

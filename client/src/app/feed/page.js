@@ -63,7 +63,7 @@ export default function FeedPage() {
                       {note.title}
                     </h2>
                   </div>
-                  <span className="badge badge-green text-[10px]">
+                  <span className="badge badge-green text-xs">
                     {cat.label}
                   </span>
                 </div>
@@ -80,7 +80,7 @@ export default function FeedPage() {
                 {note.codeSnippet && (
                   <div className="relative mb-3">
                     <pre
-                      className="rounded-lg px-4 py-3 text-xs overflow-x-auto"
+                      className="rounded-lg px-4 py-3 text-sm overflow-x-auto"
                       style={{
                         background: "var(--color-bg-primary)",
                         fontFamily: "var(--font-mono)",
@@ -92,7 +92,7 @@ export default function FeedPage() {
                     </pre>
                     <button
                       onClick={() => copySnippet(note.codeSnippet, note._id)}
-                      className="absolute top-2 right-2 btn-ghost text-xs"
+                      className="absolute top-2 right-2 btn-ghost text-sm"
                     >
                       {copiedId === note._id ? (
                         <Check size={12} />
@@ -112,7 +112,7 @@ export default function FeedPage() {
                     ))}
                   </div>
                   <div
-                    className="flex items-center gap-2 text-xs"
+                    className="flex items-center gap-2 text-sm"
                     style={{ color: "var(--color-text-muted)" }}
                   >
                     {note.userId?.name && (
@@ -145,7 +145,7 @@ export default function FeedPage() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="btn-secondary text-xs"
+            className="btn-secondary text-sm"
           >
             Previous
           </button>
@@ -158,7 +158,7 @@ export default function FeedPage() {
           <button
             onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
             disabled={page >= pagination.pages}
-            className="btn-secondary text-xs"
+            className="btn-secondary text-sm"
           >
             Next
           </button>

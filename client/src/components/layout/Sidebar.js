@@ -112,7 +112,7 @@ export default function Sidebar() {
               <Icon size={18} className="flex-shrink-0" />
               {!collapsed && (
                 <span
-                  className="text-xs font-semibold uppercase"
+                  className="text-sm font-semibold uppercase"
                   style={{ letterSpacing: "0.08em" }}
                 >
                   {item.label}
@@ -147,7 +147,7 @@ export default function Sidebar() {
                 {user.name}
               </p>
               <p
-                className="text-xs truncate"
+                className="text-sm truncate"
                 style={{ color: "var(--color-text-muted)" }}
               >
                 {user.email}

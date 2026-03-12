@@ -79,7 +79,7 @@ export default function TagsPage() {
           {/* Tag list */}
           <div className="card p-0 overflow-hidden" style={{ borderRadius: "1.5rem" }}>
             <div
-              className="px-5 py-3 border-b font-semibold text-xs"
+              className="px-5 py-3 border-b font-semibold text-sm"
               style={{
                 borderColor: "var(--color-border)",
                 color: "var(--color-text-muted)",
@@ -104,7 +104,7 @@ export default function TagsPage() {
                   {tag.name}
                 </span>
                 <span
-                  className="w-20 text-right text-xs"
+                  className="w-20 text-right text-sm"
                   style={{ color: "var(--color-text-muted)" }}
                 >
                   {tag.usageCount}

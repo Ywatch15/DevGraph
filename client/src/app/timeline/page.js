@@ -68,7 +68,7 @@ export default function TimelinePage() {
                   className="flex-1 flex flex-col items-center gap-1"
                 >
                   <span
-                    className="text-[10px] font-medium"
+                    className="text-xs font-medium"
                     style={{ color: "var(--color-accent)" }}
                   >
                     {t.count}
@@ -83,7 +83,7 @@ export default function TimelinePage() {
                     }}
                   />
                   <span
-                    className="text-[9px]"
+                    className="text-[10px]"
                     style={{ color: "var(--color-text-muted)" }}
                   >
                     {t.month}
@@ -158,7 +158,7 @@ export default function TimelinePage() {
                         {note.tags?.slice(0, 2).map((t) => (
                           <span
                             key={t}
-                            className="badge badge-accent text-[9px]"
+                            className="badge badge-accent text-[10px]"
                           >
                             {t}
                           </span>

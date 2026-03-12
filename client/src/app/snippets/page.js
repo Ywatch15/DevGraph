@@ -160,7 +160,7 @@ export default function SnippetsPage() {
             >
               {group}
               <span
-                className="text-xs font-normal"
+                className="text-sm font-normal"
                 style={{ color: "var(--color-text-muted)" }}
               >
                 ({snippets.length})
@@ -177,13 +177,13 @@ export default function SnippetsPage() {
                     >
                       {note.title}
                     </Link>
-                    <span className="badge badge-blue text-[10px]">
+                    <span className="badge badge-blue text-xs">
                       {note.language}
                     </span>
                   </div>
                   <div className="relative">
                     <pre
-                      className="rounded-md px-3 py-2 text-xs overflow-x-auto max-h-32"
+                      className="rounded-md px-3 py-2 text-sm overflow-x-auto max-h-32"
                       style={{
                         background: "var(--color-bg-primary)",
                         fontFamily: "var(--font-mono)",
@@ -195,7 +195,7 @@ export default function SnippetsPage() {
                     </pre>
                     <button
                       onClick={() => copySnippet(note.codeSnippet, note._id)}
-                      className="absolute top-1.5 right-1.5 btn-ghost text-[10px]"
+                      className="absolute top-1.5 right-1.5 btn-ghost text-xs"
                     >
                       {copiedId === note._id ? (
                         <Check size={11} />

@@ -108,7 +108,7 @@ export default function SettingsPage() {
                 {user?.email}
               </p>
               <p
-                className="text-xs mt-1"
+                className="text-sm mt-1"
                 style={{ color: "var(--color-text-muted)" }}
               >
                 Member since{" "}
@@ -136,7 +136,7 @@ export default function SettingsPage() {
                   {patterns.topTech?.slice(0, 5).map((t) => (
                     <div
                       key={t.name}
-                      className="flex items-center justify-between text-xs"
+                      className="flex items-center justify-between text-sm"
                     >
                       <span style={{ color: "var(--color-text-secondary)" }}>
                         {t.name}
@@ -155,7 +155,7 @@ export default function SettingsPage() {
                   {patterns.topCategories?.map((c) => (
                     <div
                       key={c.name}
-                      className="flex items-center justify-between text-xs"
+                      className="flex items-center justify-between text-sm"
                     >
                       <span style={{ color: "var(--color-text-secondary)" }}>
                         {c.name}
@@ -174,7 +174,7 @@ export default function SettingsPage() {
                   {patterns.topLanguages?.slice(0, 5).map((l) => (
                     <div
                       key={l.name}
-                      className="flex items-center justify-between text-xs"
+                      className="flex items-center justify-between text-sm"
                     >
                       <span style={{ color: "var(--color-text-secondary)" }}>
                         {l.name}
@@ -201,7 +201,7 @@ export default function SettingsPage() {
                     className="flex-1 flex flex-col items-center justify-end gap-1"
                   >
                     <span
-                      className="text-[9px] font-semibold"
+                      className="text-[10px] font-semibold"
                       style={{ color: "#7c3aed" }}
                     >
                       {t.count}
@@ -231,7 +231,7 @@ export default function SettingsPage() {
         {/* App info */}
         <AccordionCard icon={Info} title="About DevGraph">
           <p
-            className="text-xs leading-relaxed"
+            className="text-sm leading-relaxed"
             style={{ color: "var(--color-text-muted)" }}
           >
             DevGraph is your personal developer knowledge graph — capture, search,
