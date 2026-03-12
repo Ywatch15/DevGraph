@@ -6,6 +6,7 @@ class SearchService {
     this.index = null;
     this.noteMap = new Map();
     this.initialized = false;
+    this.currentUserId = null;
   }
 
   async initIndex(userId) {
@@ -13,6 +14,7 @@ class SearchService {
       tokenize: "forward",
       cache: true,
     });
+    this.noteMap.clear();
 
     const { data: notes } = await supabase
       .from("notes")
@@ -26,6 +28,7 @@ class SearchService {
     }
 
     this.initialized = true;
+    this.currentUserId = userId;
   }
 
   addToIndex(note) {
@@ -56,31 +59,58 @@ class SearchService {
       return { results: [], pagination: { page, limit, total: 0, pages: 0 } };
     }
 
-    if (!this.initialized) {
+    if (!this.initialized || this.currentUserId !== userId) {
       await this.initIndex(userId);
     }
 
     let flexResults = [];
 
-    // FlexSearch for fast fuzzy in-memory
+    // FlexSearch for fast prefix in-memory search
     if (q && this.index) {
       flexResults = this.index.search(q, { limit: 100 });
     }
 
-    // PostgreSQL full-text search
-    let query = supabase.from("notes").select("*").eq("user_id", userId);
+    // PostgreSQL: prefix-aware full-text search + ilike fallback
+    let pgResults = [];
 
     if (q) {
-      query = query.textSearch("fts", q.split(/\s+/).join(" & "), {
-        type: "plain",
-      });
-    }
-    if (tags) {
-      const tagList = tags.split(",").map((t) => t.trim().toLowerCase());
-      query = query.overlaps("tags", tagList);
-    }
+      // Build prefix tsquery: "de bug" -> "de:* & bug:*"
+      const terms = q.trim().split(/\s+/).filter(Boolean);
+      const prefixQuery = terms.map((t) => t.replace(/[^a-zA-Z0-9]/g, "") + ":*").join(" & ");
 
-    const { data: pgResults } = await query;
+      // Full-text search with prefix matching
+      let ftsQuery = supabase.from("notes").select("*").eq("user_id", userId);
+      if (prefixQuery) {
+        ftsQuery = ftsQuery.textSearch("fts", prefixQuery);
+      }
+      if (tags) {
+        const tagList = tags.split(",").map((t) => t.trim().toLowerCase());
+        ftsQuery = ftsQuery.overlaps("tags", tagList);
+      }
+      const { data: ftsResults } = await ftsQuery;
+      if (ftsResults) pgResults.push(...ftsResults);
+
+      // ilike fallback for partial matches FTS might miss
+      const seen = new Set(pgResults.map((n) => n.id));
+      const pattern = `%${q}%`;
+      let ilikeQuery = supabase.from("notes").select("*").eq("user_id", userId)
+        .or(`title.ilike.${pattern},description.ilike.${pattern},code_snippet.ilike.${pattern}`);
+      if (tags) {
+        const tagList = tags.split(",").map((t) => t.trim().toLowerCase());
+        ilikeQuery = ilikeQuery.overlaps("tags", tagList);
+      }
+      const { data: ilikeResults } = await ilikeQuery;
+      for (const note of ilikeResults || []) {
+        if (!seen.has(note.id)) {
+          pgResults.push(note);
+          seen.add(note.id);
+        }
+      }
+    } else if (tags) {
+      const tagList = tags.split(",").map((t) => t.trim().toLowerCase());
+      const { data } = await supabase.from("notes").select("*").eq("user_id", userId).overlaps("tags", tagList);
+      pgResults = data || [];
+    }
 
     // Merge: FlexSearch first, then PG-only
     const resultMap = new Map();
