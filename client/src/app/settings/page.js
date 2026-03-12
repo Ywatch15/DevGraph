@@ -73,13 +73,12 @@ export default function SettingsPage() {
     <div className="space-y-6 animate-springIn max-w-3xl">
       <div>
         <h1
-          className="text-2xl font-semibold flex items-center gap-2"
-          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
+          className="text-2xl font-semibold flex items-center gap-2 page-heading"
         >
-          <SettingsIcon size={22} style={{ color: "#7c3aed" }} />{" "}
+          <SettingsIcon size={22} className="heading-icon" style={{ color: "#7c3aed" }} />{" "}
           Settings
         </h1>
-        <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
+        <p className="text-sm mt-1 page-subtitle" style={{ color: "var(--color-text-muted)" }}>
           Configuration engine
         </p>
       </div>

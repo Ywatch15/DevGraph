@@ -6,9 +6,19 @@ const setupSecurity = (app) => {
   app.use(helmet());
 
   // CORS
+  const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:3000,http://localhost:4000")
+    .split(",")
+    .map((o) => o.trim());
+
   app.use(
     cors({
-      origin: process.env.CLIENT_URL || "http://localhost:3000",
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
       allowedHeaders: ["Content-Type", "Authorization"],

@@ -59,6 +59,7 @@
   --color-warning: #f59e0b;
   --color-success: #10b981;
   --color-info: #3b82f6;
+  --font-heading: "Space Grotesk", "General Sans", "Inter", system-ui, sans-serif;
   --font-sans: "General Sans", "Satoshi", "Inter", system-ui, -apple-system, sans-serif;
   --font-body: "Satoshi", "General Sans", "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
@@ -227,6 +228,67 @@ body {
 }
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
+}
+
+/* ===== Page heading styles ===== */
+@keyframes headingReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes subtitleReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.page-heading {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #e2e8f0 0%, #c4b5fd 40%, #a78bfa 60%, #e2e8f0 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: headingReveal 0.6s var(--nm-spring) forwards, gradientShift 6s ease infinite;
+  opacity: 0;
+}
+
+.page-heading .heading-icon {
+  -webkit-text-fill-color: initial;
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+}
+
+.page-subtitle {
+  animation: subtitleReveal 0.5s ease forwards;
+  animation-delay: 0.15s;
+  opacity: 0;
 }
 
 /* Stagger children */

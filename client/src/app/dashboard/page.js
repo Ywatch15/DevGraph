@@ -112,13 +112,12 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1
-            className="text-2xl font-semibold flex items-center gap-2"
-            style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
+            className="text-2xl font-semibold flex items-center gap-2 page-heading"
           >
-            <Activity size={22} style={{ color: "#7c3aed" }} /> Welcome back, {user?.name?.split(" ")[0]}
+            <Activity size={22} className="heading-icon" style={{ color: "#7c3aed" }} /> Welcome back, {user?.name?.split(" ")[0]}
           </h1>
           <p
-            className="text-sm mt-1"
+            className="text-sm mt-1 page-subtitle"
             style={{ color: "var(--color-text-muted)" }}
           >
             Your knowledge graph at a glance

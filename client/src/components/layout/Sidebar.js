@@ -40,8 +40,10 @@ export default function Sidebar() {
         collapsed ? "w-[68px]" : "w-[256px]"
       }`}
       style={{
-        background: "#0a0a18",
-        borderRight: "1px solid rgba(255,255,255,0.05)",
+        background: "rgba(10, 10, 24, 0.55)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(10px)",
+        borderRight: "1px solid rgba(255,255,255,0.06)",
       }}
     >
       {/* Logo */}

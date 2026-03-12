@@ -70,13 +70,12 @@ export default function SearchPage() {
     <div className="space-y-6 animate-springIn">
       <div>
         <h1
-          className="text-2xl font-semibold flex items-center gap-2"
-          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
+          className="text-2xl font-semibold flex items-center gap-2 page-heading"
         >
-          <SearchIcon size={22} style={{ color: "#7c3aed" }} /> Search
+          <SearchIcon size={22} className="heading-icon" style={{ color: "#7c3aed" }} /> Search
         </h1>
         <p
-          className="text-sm mt-0.5"
+          className="text-sm mt-0.5 page-subtitle"
           style={{ color: "var(--color-text-muted)" }}
         >
           Instantly find notes, snippets, and solutions

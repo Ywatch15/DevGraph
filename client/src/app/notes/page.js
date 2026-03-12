@@ -53,13 +53,12 @@ export default function NotesListPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1
-            className="text-2xl font-semibold flex items-center gap-2"
-            style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
+            className="text-2xl font-semibold flex items-center gap-2 page-heading"
           >
-            <FileText size={22} style={{ color: "#7c3aed" }} /> My Notes
+            <FileText size={22} className="heading-icon" style={{ color: "#7c3aed" }} /> My Notes
           </h1>
           <p
-            className="text-sm mt-0.5"
+            className="text-sm mt-0.5 page-subtitle"
             style={{ color: "var(--color-text-muted)" }}
           >
             {pagination.total} total notes

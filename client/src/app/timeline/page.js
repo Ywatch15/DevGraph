@@ -35,14 +35,13 @@ export default function TimelinePage() {
     <div className="space-y-8 animate-springIn max-w-3xl">
       <div>
         <h1
-          className="text-2xl font-semibold flex items-center gap-2"
-          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
+          className="text-2xl font-semibold flex items-center gap-2 page-heading"
         >
-          <Clock size={22} style={{ color: "#7c3aed" }} /> Knowledge
+          <Clock size={22} className="heading-icon" style={{ color: "#7c3aed" }} /> Knowledge
           Timeline
         </h1>
         <p
-          className="text-sm mt-0.5"
+          className="text-sm mt-0.5 page-subtitle"
           style={{ color: "var(--color-text-muted)" }}
         >
           Your developer learning journey over time

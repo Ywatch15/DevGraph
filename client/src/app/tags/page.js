@@ -17,13 +17,12 @@ export default function TagsPage() {
     <div className="space-y-6 animate-springIn">
       <div>
         <h1
-          className="text-2xl font-semibold flex items-center gap-2"
-          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
+          className="text-2xl font-semibold flex items-center gap-2 page-heading"
         >
-          <TagsIcon size={22} style={{ color: "#7c3aed" }} /> Tags
+          <TagsIcon size={22} className="heading-icon" style={{ color: "#7c3aed" }} /> Tags
         </h1>
         <p
-          className="text-sm mt-0.5"
+          className="text-sm mt-0.5 page-subtitle"
           style={{ color: "var(--color-text-muted)" }}
         >
           {tags.length} tags across your knowledge base

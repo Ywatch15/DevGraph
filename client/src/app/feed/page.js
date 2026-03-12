@@ -27,14 +27,13 @@ export default function FeedPage() {
     <div className="space-y-6 animate-springIn">
       <div>
         <h1
-          className="text-2xl font-semibold flex items-center gap-2"
-          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
+          className="text-2xl font-semibold flex items-center gap-2 page-heading"
         >
-          <Globe size={22} style={{ color: "#db2777" }} /> Public
+          <Globe size={22} className="heading-icon" style={{ color: "#db2777" }} /> Public
           Knowledge Feed
         </h1>
         <p
-          className="text-sm mt-0.5"
+          className="text-sm mt-0.5 page-subtitle"
           style={{ color: "var(--color-text-muted)" }}
         >
           Discover solutions shared by the developer community
