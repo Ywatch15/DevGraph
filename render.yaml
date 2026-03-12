@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: devgraph-api
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    region: oregon
+    plan: free
+    envVars:
+      - key: PORT
+        value: "5000"
+      - key: NODE_ENV
+        value: "production"
+      - key: SUPABASE_URL
+        sync: false          # You'll set this manually in the Render dashboard
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: CLIENT_URL
+        sync: false          # Set to your Vercel frontend URL after deploying frontend

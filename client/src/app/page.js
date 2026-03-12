@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Zap, ArrowRight, GitFork, Search, Code2, Globe, LayoutDashboard } from "lucide-react";
+import { ArrowRight, GitFork, Search, Code2, Globe, LayoutDashboard } from "lucide-react";
 import Squares from "@/components/ui/Squares";
 import { GlowCard } from "@/components/ui/spotlight-card";
 import { useAuth } from "@/context/AuthContext";
@@ -34,7 +34,10 @@ export default function LandingPage() {
                 "linear-gradient(135deg, var(--color-accent), #6b4ce6)",
             }}
           >
-            <Zap size={18} color="white" />
+            <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 8L16 16L10 24" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M16 22L24 22" stroke="#00d4aa" strokeWidth="2.8" strokeLinecap="round"/>
+            </svg>
           </div>
           <span
             className="font-bold text-lg"
@@ -43,7 +46,7 @@ export default function LandingPage() {
             DevGraph
           </span>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 ml-auto">
           {user ? (
             <Link href="/dashboard" className="btn-primary">
               <LayoutDashboard size={14} /> Dashboard
@@ -72,23 +75,15 @@ export default function LandingPage() {
               border: "1px solid rgba(124,92,252,0.25)",
             }}
           >
-            <Zap size={12} /> Your Developer Second Brain
+            <svg width="12" height="12" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 8L16 16L10 24" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M16 22L24 22" stroke="#00d4aa" strokeWidth="3" strokeLinecap="round"/>
+            </svg> Your Developer Second Brain
           </div>
           <h1
-            className="text-4xl md:text-6xl font-extrabold leading-tight mb-4"
-            style={{ color: "var(--color-text-primary)" }}
+            className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 page-heading"
           >
-            Capture. Connect.{" "}
-            <span
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--color-accent), var(--color-accent2))",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Recall Instantly.
-            </span>
+            Capture. Connect. Recall Instantly.
           </h1>
           <p
             className="text-lg md:text-xl mb-8 max-w-2xl mx-auto"
@@ -167,8 +162,8 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer
-        className="relative z-10 py-6 text-center text-sm"
-        style={{ color: "var(--color-text-muted)" }}
+        className="relative z-10 py-8 text-center text-base page-heading"
+        style={{ fontSize: "1rem" }}
       >
         Built with ♥ for developers · Solve it once. Remember it forever.
       </footer>

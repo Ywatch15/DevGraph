@@ -14,7 +14,6 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Zap,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -58,7 +57,10 @@ export default function Sidebar() {
             background: "linear-gradient(135deg, #7c3aed, #db2777)",
           }}
         >
-          <Zap size={18} color="white" />
+          <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 8L16 16L10 24" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M16 22L24 22" stroke="#00d4aa" strokeWidth="2.8" strokeLinecap="round"/>
+          </svg>
         </div>
         {!collapsed && (
           <span

@@ -113,8 +113,12 @@ export default function NoteEditorPage({ params }) {
   const removeTag = (tag) => setTags(tags.filter((t) => t !== tag));
 
   // Monaco: use onMount to get editor ref, read value from ref instead of state (fixes cursor lag)
-  const handleEditorMount = (editor) => {
+  const handleEditorMount = (editor, monaco) => {
     editorRef.current = editor;
+    // Remeasure fonts once JetBrains Mono loads to fix cursor/character misalignment
+    document.fonts.ready.then(() => {
+      monaco.editor.remeasureFonts();
+    });
   };
 
   const handleSave = async () => {
