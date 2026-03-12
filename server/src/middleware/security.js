@@ -7,14 +7,18 @@ const setupSecurity = (app) => {
   app.use(helmet());
 
   // CORS
+  const normalizeOrigin = (origin) => (origin || "").trim().replace(/\/+$/, "");
+
   const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:3000,http://localhost:4000")
     .split(",")
-    .map((o) => o.trim());
+    .map((o) => normalizeOrigin(o))
+    .filter(Boolean);
 
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
+        const normalizedOrigin = normalizeOrigin(origin);
+        if (!origin || allowedOrigins.includes(normalizedOrigin)) {
           callback(null, true);
         } else {
           callback(new Error("Not allowed by CORS"));
