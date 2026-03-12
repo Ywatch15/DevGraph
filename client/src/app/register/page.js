@@ -50,7 +50,12 @@ export default function RegisterPage() {
       toast.success("Account created! Welcome to DevGraph");
       router.push("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.error || "Registration failed");
+      const data = err.response?.data;
+      const message =
+        (Array.isArray(data?.details) && data.details[0]) ||
+        data?.error ||
+        "Registration failed";
+      toast.error(message);
     }
     setLoading(false);
   };

@@ -138,7 +138,7 @@ const Input = React.forwardRef(({ className, type, ...props }, ref) => {
     <input
       type={type}
       className={cn(
-        "flex h-10 w-full rounded-lg border border-input dark:border-input/50 bg-background px-3 py-3 text-sm text-foreground shadow-sm shadow-black/5 transition-shadow placeholder:text-muted-foreground/70 focus-visible:bg-accent focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-10 w-full rounded-lg border border-input dark:border-input/50 bg-background px-3 py-3 text-sm text-foreground shadow-sm shadow-black/5 transition-shadow placeholder:text-muted-foreground/70 focus-visible:bg-white/5 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       ref={ref}
@@ -256,8 +256,10 @@ function SignUpForm({ onSubmit, loading }) {
           label="Password"
           required
           autoComplete="new-password"
-          placeholder="Min 6 characters"
-          minLength={6}
+          placeholder="Min 8 chars, 1 uppercase, 1 number"
+          minLength={8}
+          pattern="(?=.*[A-Z])(?=.*\d).{8,}"
+          title="Password must be at least 8 characters and include at least one uppercase letter and one number"
         />
         <Button type="submit" variant="outline" className="mt-2" disabled={loading}>
           {loading ? "Creating account..." : "Sign Up"}
