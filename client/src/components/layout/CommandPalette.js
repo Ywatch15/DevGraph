@@ -133,7 +133,7 @@ export default function CommandPalette() {
 
       {/* Palette */}
       <div
-        className="relative w-full max-w-xl rounded-xl shadow-2xl animate-scaleIn overflow-hidden"
+        className="relative w-full max-w-xl rounded-2xl animate-scaleIn overflow-hidden nm-flat"
         style={{
           background: "var(--color-bg-secondary)",
           border: "1px solid var(--color-border)",

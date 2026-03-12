@@ -168,22 +168,22 @@ export default function NoteEditorPage({ params }) {
 
   if (!isNew && isLoading) {
     return (
-      <div className="p-6 md:p-8">
+      <div>
         <div
-          className="h-8 w-64 shimmer rounded mb-6"
+          className="h-8 w-64 shimmer rounded-xl mb-6"
           style={{ background: "var(--color-bg-tertiary)" }}
         />
         <div className="space-y-4">
           <div
-            className="h-12 shimmer rounded-lg"
+            className="h-12 shimmer rounded-xl"
             style={{ background: "var(--color-bg-tertiary)" }}
           />
           <div
-            className="h-32 shimmer rounded-lg"
+            className="h-32 shimmer rounded-xl"
             style={{ background: "var(--color-bg-tertiary)" }}
           />
           <div
-            className="h-64 shimmer rounded-lg"
+            className="h-64 shimmer rounded-xl"
             style={{ background: "var(--color-bg-tertiary)" }}
           />
         </div>
@@ -192,7 +192,7 @@ export default function NoteEditorPage({ params }) {
   }
 
   return (
-    <div className="p-6 md:p-8 animate-fadeIn">
+    <div className="animate-springIn">
       {/* Top bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
@@ -200,8 +200,8 @@ export default function NoteEditorPage({ params }) {
             <ArrowLeft size={16} />
           </button>
           <h1
-            className="text-lg font-bold"
-            style={{ color: "var(--color-text-primary)" }}
+            className="text-lg font-semibold"
+            style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
           >
             {isNew ? "New Note" : "Edit Note"}
           </h1>
@@ -245,9 +245,9 @@ export default function NoteEditorPage({ params }) {
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-transparent border-none outline-none text-2xl font-bold"
+            className="w-full bg-transparent border-none outline-none text-2xl font-semibold"
             placeholder="Untitled note..."
-            style={{ color: "var(--color-text-primary)" }}
+            style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
           />
 
           {/* Category + Language + Source URL */}
@@ -282,14 +282,15 @@ export default function NoteEditorPage({ params }) {
             />
           </div>
 
-          {/* Description */}
           <div>
-            <label
-              className="block text-xs font-semibold mb-2"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              Description
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label
+                className="label-tech"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
+                Description
+              </label>
+            </div>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -317,7 +318,7 @@ export default function NoteEditorPage({ params }) {
               )}
             </div>
             <div
-              className="rounded-lg overflow-hidden border"
+              className="rounded-xl overflow-hidden border"
               style={{ borderColor: "var(--color-border)" }}
             >
               <MonacoEditor
@@ -478,12 +479,12 @@ export default function NoteEditorPage({ params }) {
         {/* Context panel (1 col) */}
         <div className="space-y-5">
           {/* Related notes */}
-          <div className="card">
+          <div className="card" style={{ borderRadius: "1.25rem" }}>
             <h3
               className="font-semibold text-xs flex items-center gap-1.5 mb-3"
-              style={{ color: "var(--color-text-primary)" }}
+              style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
             >
-              <Zap size={13} style={{ color: "var(--color-accent)" }} /> Related
+              <Zap size={13} style={{ color: "#7c3aed" }} /> Related
               Knowledge
             </h3>
             {relatedNotes.length > 0 ? (
@@ -522,10 +523,10 @@ export default function NoteEditorPage({ params }) {
           </div>
 
           {/* Quick tips */}
-          <div className="card">
+          <div className="card" style={{ borderRadius: "1.25rem" }}>
             <h3
               className="font-semibold text-xs mb-3"
-              style={{ color: "var(--color-text-primary)" }}
+              style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
             >
               💡 Tips
             </h3>
@@ -533,19 +534,7 @@ export default function NoteEditorPage({ params }) {
               className="space-y-1.5 text-xs"
               style={{ color: "var(--color-text-muted)" }}
             >
-              <li>
-                • Use{" "}
-                <kbd
-                  className="px-1 rounded text-[10px]"
-                  style={{
-                    background: "var(--color-bg-tertiary)",
-                    border: "1px solid var(--color-border)",
-                  }}
-                >
-                  Ctrl+K
-                </kbd>{" "}
-                for quick search
-              </li>
+
               <li>• Click &quot;Popular Tags&quot; for presets</li>
               <li>• Public notes appear in the feed</li>
               <li>• Add code for syntax highlighting</li>

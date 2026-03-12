@@ -67,13 +67,13 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-springIn">
       <div>
         <h1
-          className="text-2xl font-bold"
-          style={{ color: "var(--color-text-primary)" }}
+          className="text-2xl font-semibold flex items-center gap-2"
+          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
         >
-          Search
+          <SearchIcon size={22} style={{ color: "#7c3aed" }} /> Search
         </h1>
         <p
           className="text-sm mt-0.5"
@@ -85,26 +85,30 @@ export default function SearchPage() {
 
       {/* Tabs */}
       <div
-        className="flex gap-1 p-1 rounded-lg w-fit"
-        style={{ background: "var(--color-bg-tertiary)" }}
+        className="flex gap-1 p-1 rounded-xl w-fit nm-inset"
+        style={{ background: "var(--color-bg-primary)" }}
       >
         <button
           onClick={() => setTab("search")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${tab === "search" ? "text-white" : ""}`}
+          className={`px-4 py-2 rounded-lg text-xs font-semibold uppercase transition-all ${tab === "search" ? "text-white" : ""}`}
           style={{
             background:
-              tab === "search" ? "var(--color-accent)" : "transparent",
+              tab === "search" ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "transparent",
             color: tab === "search" ? "white" : "var(--color-text-secondary)",
+            letterSpacing: "0.05em",
+            transitionTimingFunction: "var(--nm-spring)",
           }}
         >
           <SearchIcon size={14} className="inline mr-1.5" /> Search
         </button>
         <button
           onClick={() => setTab("error")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-all`}
+          className={`px-4 py-2 rounded-lg text-xs font-semibold uppercase transition-all`}
           style={{
-            background: tab === "error" ? "var(--color-accent)" : "transparent",
+            background: tab === "error" ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "transparent",
             color: tab === "error" ? "white" : "var(--color-text-secondary)",
+            letterSpacing: "0.05em",
+            transitionTimingFunction: "var(--nm-spring)",
           }}
         >
           <AlertTriangle size={14} className="inline mr-1.5" /> Error Matcher

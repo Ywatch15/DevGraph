@@ -37,39 +37,48 @@ export default function Sidebar() {
   return (
     <aside
       className={`desktop-only fixed left-0 top-0 h-screen flex flex-col transition-all duration-300 z-40 ${
-        collapsed ? "w-[68px]" : "w-[240px]"
+        collapsed ? "w-[68px]" : "w-[256px]"
       }`}
       style={{
-        background: "var(--color-bg-secondary)",
-        borderRight: "1px solid var(--color-border)",
+        background: "#0a0a18",
+        borderRight: "1px solid rgba(255,255,255,0.05)",
       }}
     >
       {/* Logo */}
       <Link
         href="/"
-        className="flex items-center gap-3 px-4 h-16 border-b"
-        style={{ borderColor: "var(--color-border)" }}
+        className="flex items-center gap-3 px-5 h-16 border-b"
+        style={{ borderColor: "rgba(255,255,255,0.05)" }}
       >
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{
-            background: "linear-gradient(135deg, var(--color-accent), #6b4ce6)",
+            background: "linear-gradient(135deg, #7c3aed, #db2777)",
           }}
         >
           <Zap size={18} color="white" />
         </div>
         {!collapsed && (
           <span
-            className="font-bold text-lg tracking-tight"
-            style={{ color: "var(--color-text-primary)" }}
+            className="font-semibold text-lg tracking-tight"
+            style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
           >
             DevGraph
           </span>
         )}
       </Link>
 
+      {/* Section label */}
+      {!collapsed && (
+        <div className="px-5 pt-5 pb-2">
+          <span className="label-tech" style={{ color: "var(--color-text-muted)" }}>
+            Navigation
+          </span>
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 py-2 px-3 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const isActive =
             pathname === item.href || pathname?.startsWith(item.href + "/");
@@ -78,28 +87,36 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 group ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${
                 collapsed ? "justify-center" : ""
               }`}
               style={{
                 background: isActive
-                  ? "rgba(124, 92, 252, 0.12)"
+                  ? "rgba(124, 58, 237, 0.08)"
                   : "transparent",
                 color: isActive
-                  ? "var(--color-accent-hover)"
+                  ? "#8b5cf6"
                   : "var(--color-text-secondary)",
+                transitionDuration: "0.3s",
+                transitionTimingFunction: "var(--nm-spring)",
               }}
               title={collapsed ? item.label : undefined}
             >
-              <Icon size={19} className="flex-shrink-0" />
-              {!collapsed && (
-                <span className="text-sm font-medium">{item.label}</span>
-              )}
-              {isActive && !collapsed && (
+              {/* Active indicator — right border */}
+              {isActive && (
                 <div
-                  className="ml-auto w-1.5 h-1.5 rounded-full"
-                  style={{ background: "var(--color-accent)" }}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-l-full"
+                  style={{ background: "#7c3aed" }}
                 />
+              )}
+              <Icon size={18} className="flex-shrink-0" />
+              {!collapsed && (
+                <span
+                  className="text-xs font-semibold uppercase"
+                  style={{ letterSpacing: "0.08em" }}
+                >
+                  {item.label}
+                </span>
               )}
             </Link>
           );
@@ -109,15 +126,15 @@ export default function Sidebar() {
       {/* User section */}
       <div
         className="border-t p-3"
-        style={{ borderColor: "var(--color-border)" }}
+        style={{ borderColor: "rgba(255,255,255,0.05)" }}
       >
         {!collapsed && user && (
-          <div className="flex items-center gap-3 mb-2 px-2">
+          <div className="flex items-center gap-3 mb-3 px-2">
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
               style={{
-                background: "var(--color-bg-tertiary)",
-                color: "var(--color-accent)",
+                background: "linear-gradient(135deg, #7c3aed, #db2777)",
+                color: "white",
               }}
             >
               {user.name?.charAt(0).toUpperCase()}

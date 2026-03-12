@@ -16,8 +16,13 @@ const auth = async (req, res, next) => {
 
     const token = authHeader.replace("Bearer ", "");
 
-    // Verify the token with Supabase
-    const { data, error } = await supabase.auth.getUser(token);
+    // Verify the token with Supabase (retry once on transient network errors)
+    let data, error;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      ({ data, error } = await supabase.auth.getUser(token));
+      if (!error || !error.message?.includes("fetch failed")) break;
+      await new Promise((r) => setTimeout(r, 500));
+    }
 
     if (error || !data?.user) {
       return res.status(401).json({ error: "Invalid or expired token." });

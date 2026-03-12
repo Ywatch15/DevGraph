@@ -24,13 +24,13 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-springIn">
       <div>
         <h1
-          className="text-2xl font-bold flex items-center gap-2"
-          style={{ color: "var(--color-text-primary)" }}
+          className="text-2xl font-semibold flex items-center gap-2"
+          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
         >
-          <Globe size={24} style={{ color: "var(--color-accent2)" }} /> Public
+          <Globe size={22} style={{ color: "#db2777" }} /> Public
           Knowledge Feed
         </h1>
         <p

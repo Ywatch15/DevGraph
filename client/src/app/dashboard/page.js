@@ -14,7 +14,40 @@ import {
   Zap,
   ArrowRight,
   BarChart3,
+  Activity,
 } from "lucide-react";
+
+/* SVG Progress Ring */
+function ProgressRing({ value, max, size = 44, strokeWidth = 4, color }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const pct = max > 0 ? value / max : 0;
+  const offset = circumference * (1 - pct);
+  return (
+    <svg width={size} height={size} className="rotate-[-90deg]">
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        className="progress-ring-bg"
+        strokeWidth={strokeWidth}
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        className="progress-ring-fill"
+      />
+    </svg>
+  );
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -30,14 +63,14 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-8 space-y-6">
+      <div className="space-y-6">
         <div
-          className="h-8 w-48 rounded shimmer"
+          className="h-8 w-48 rounded-xl shimmer"
           style={{ background: "var(--color-bg-tertiary)" }}
         />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="card h-28 shimmer" />
+            <div key={i} className="card h-32 shimmer" />
           ))}
         </div>
       </div>
@@ -49,38 +82,40 @@ export default function DashboardPage() {
       label: "Total Notes",
       value: stats?.total || 0,
       icon: FileText,
-      color: "var(--color-accent)",
+      color: "#7c3aed",
+      showRing: true,
     },
     {
       label: "Public Notes",
       value: stats?.publicCount || 0,
       icon: Globe,
-      color: "var(--color-accent2)",
+      color: "#db2777",
+      showDot: true,
     },
     {
       label: "Private Notes",
       value: stats?.privateCount || 0,
       icon: Tag,
-      color: "var(--color-warning)",
+      color: "#f59e0b",
     },
     {
       label: "Top Tags",
       value: stats?.topTags?.length || 0,
       icon: TrendingUp,
-      color: "var(--color-info)",
+      color: "#3b82f6",
     },
   ];
 
   return (
-    <div className="p-6 md:p-8 space-y-8 animate-fadeIn">
+    <div className="space-y-8 animate-springIn">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1
-            className="text-2xl font-bold"
-            style={{ color: "var(--color-text-primary)" }}
+            className="text-2xl font-semibold flex items-center gap-2"
+            style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
           >
-            Welcome back, {user?.name?.split(" ")[0]} 👋
+            <Activity size={22} style={{ color: "#7c3aed" }} /> Welcome back, {user?.name?.split(" ")[0]}
           </h1>
           <p
             className="text-sm mt-1"
@@ -95,38 +130,60 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 stagger-children">
         {statCards.map((s, i) => (
-          <div key={i} className="card p-5">
-            <div className="flex items-center justify-between mb-3">
-              <s.icon size={20} style={{ color: s.color }} />
-              <span
-                className="text-2xl font-bold"
-                style={{ color: "var(--color-text-primary)" }}
+          <div
+            key={i}
+            className="card p-5 animate-springIn"
+            style={{ borderRadius: "1.5rem" }}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: `${s.color}15` }}
               >
-                {s.value}
-              </span>
+                <s.icon size={18} style={{ color: s.color }} />
+              </div>
+              {s.showRing && (
+                <ProgressRing
+                  value={stats?.total || 0}
+                  max={Math.max(stats?.total || 1, 50)}
+                  color={s.color}
+                />
+              )}
+              {s.showDot && (
+                <div className="flex items-center gap-1.5">
+                  <div
+                    className="w-2 h-2 rounded-full animate-pulse-dot"
+                    style={{ background: "#10b981" }}
+                  />
+                  <span className="text-xs" style={{ color: "#10b981" }}>Live</span>
+                </div>
+              )}
             </div>
-            <p
-              className="text-xs font-medium"
-              style={{ color: "var(--color-text-muted)" }}
+            <span
+              className="text-3xl font-semibold block"
+              style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
             >
+              {s.value}
+            </span>
+            <span className="label-tech mt-1 block">
               {s.label}
-            </p>
+            </span>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent notes */}
-        <div className="lg:col-span-2 card p-0 overflow-hidden">
+        <div className="lg:col-span-2 card p-0 overflow-hidden" style={{ borderRadius: "1.5rem" }}>
           <div
-            className="flex items-center justify-between px-5 py-4 border-b"
+            className="flex items-center justify-between px-6 py-4 border-b"
             style={{ borderColor: "var(--color-border)" }}
           >
             <h3
               className="font-semibold text-sm flex items-center gap-2"
-              style={{ color: "var(--color-text-primary)" }}
+              style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
             >
               <Clock size={15} /> Recent Notes
             </h3>
@@ -149,7 +206,8 @@ export default function DashboardPage() {
                   <Link
                     key={note._id}
                     href={`/notes/${note._id}`}
-                    className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-[var(--color-bg-hover)]"
+                    className="flex items-center gap-3 px-6 py-3.5 transition-all hover:bg-[var(--color-bg-hover)]"
+                    style={{ transitionTimingFunction: "var(--nm-spring)" }}
                   >
                     <span className="text-lg">{cat.icon}</span>
                     <div className="min-w-0 flex-1">
@@ -177,7 +235,7 @@ export default function DashboardPage() {
                 );
               })
             ) : (
-              <div className="px-5 py-8 text-center">
+              <div className="px-6 py-10 text-center">
                 <Zap
                   size={32}
                   className="mx-auto mb-2"
@@ -195,12 +253,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Right sidebar — tags & categories */}
-        <div className="space-y-6">
+        <div className="space-y-6 stagger-children">
           {/* Top tags */}
-          <div className="card p-5">
+          <div className="card p-6 animate-springIn" style={{ borderRadius: "1.5rem" }}>
             <h3
               className="font-semibold text-sm flex items-center gap-2 mb-4"
-              style={{ color: "var(--color-text-primary)" }}
+              style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
             >
               <Tag size={15} /> Top Tags
             </h3>
@@ -223,14 +281,14 @@ export default function DashboardPage() {
           </div>
 
           {/* Categories */}
-          <div className="card p-5">
+          <div className="card p-6 animate-springIn" style={{ borderRadius: "1.5rem" }}>
             <h3
               className="font-semibold text-sm flex items-center gap-2 mb-4"
-              style={{ color: "var(--color-text-primary)" }}
+              style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
             >
               <BarChart3 size={15} /> Categories
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {Object.entries(stats?.categories || {}).map(([key, count]) => {
                 const cat = CATEGORY_MAP[key] || CATEGORY_MAP.other;
                 const pct =
@@ -247,12 +305,16 @@ export default function DashboardPage() {
                       {cat.label}
                     </span>
                     <div
-                      className="w-20 h-1.5 rounded-full overflow-hidden"
-                      style={{ background: "var(--color-bg-tertiary)" }}
+                      className="w-24 h-1.5 rounded-full overflow-hidden"
+                      style={{ background: "rgba(255,255,255,0.04)" }}
                     >
                       <div
-                        className="h-full rounded-full"
-                        style={{ width: `${pct}%`, background: cat.color }}
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${pct}%`,
+                          background: cat.color,
+                          transitionTimingFunction: "var(--nm-spring)",
+                        }}
                       />
                     </div>
                     <span style={{ color: "var(--color-text-muted)" }}>

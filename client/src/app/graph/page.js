@@ -10,6 +10,7 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize2,
+  Share2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
@@ -25,13 +26,13 @@ const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
 });
 
 const CATEGORY_COLORS = {
-  "bug-fix": "#ff4757",
-  snippet: "#7c5cfc",
+  "bug-fix": "#ef4444",
+  snippet: "#7c3aed",
   architecture: "#3b82f6",
-  command: "#00d4aa",
-  config: "#ffa502",
-  learning: "#2ed573",
-  other: "#a0a0b8",
+  command: "#10b981",
+  config: "#f59e0b",
+  learning: "#10b981",
+  other: "#94a3b8",
 };
 
 export default function GraphPage() {
@@ -127,22 +128,22 @@ export default function GraphPage() {
     ctx.shadowBlur = 0;
 
     // Label
-    ctx.font = "3px Inter, sans-serif";
+    ctx.font = "3px 'Satoshi', sans-serif";
     ctx.fillStyle = "#e8e8f0";
     ctx.textAlign = "center";
     ctx.fillText(node.title?.slice(0, 25) || "", node.x, node.y + size + 5);
   }, []);
 
   return (
-    <div className="p-6 md:p-8 space-y-4 animate-fadeIn">
+    <div className="space-y-4 animate-springIn">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1
-            className="text-2xl font-bold"
-            style={{ color: "var(--color-text-primary)" }}
+            className="text-2xl font-semibold flex items-center gap-2"
+            style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
           >
-            Knowledge Graph
+            <Share2 size={22} style={{ color: "#7c3aed" }} /> Knowledge Graph
           </h1>
           <p
             className="text-sm mt-0.5"
@@ -183,7 +184,7 @@ export default function GraphPage() {
       {/* Graph */}
       <div
         id="graph-container"
-        className="rounded-xl overflow-hidden border"
+        className="rounded-2xl overflow-hidden border nm-flat"
         style={{
           background: "var(--color-bg-primary)",
           borderColor: "var(--color-border)",
@@ -223,7 +224,7 @@ export default function GraphPage() {
               ctx.fill();
             }}
             onNodeClick={handleNodeClick}
-            linkColor={() => "rgba(124, 92, 252, 0.15)"}
+            linkColor={() => "rgba(124, 58, 237, 0.15)"}
             linkWidth={(link) => Math.max(0.5, (link.weight || 0) * 2)}
             backgroundColor="transparent"
             cooldownTicks={100}

@@ -170,7 +170,7 @@ export default function LandingPage() {
         className="relative z-10 py-6 text-center text-xs"
         style={{ color: "var(--color-text-muted)" }}
       >
-        Built with ♥ for developers · 100% Free · No paid APIs
+        Built with ♥ for developers · Solve it once. Remember it forever.
       </footer>
     </div>
   );

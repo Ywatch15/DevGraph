@@ -32,13 +32,13 @@ export default function TimelinePage() {
   const months = Object.keys(grouped).sort().reverse();
 
   return (
-    <div className="p-6 md:p-8 space-y-8 animate-fadeIn max-w-3xl">
+    <div className="space-y-8 animate-springIn max-w-3xl">
       <div>
         <h1
-          className="text-2xl font-bold flex items-center gap-2"
-          style={{ color: "var(--color-text-primary)" }}
+          className="text-2xl font-semibold flex items-center gap-2"
+          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
         >
-          <Clock size={24} style={{ color: "var(--color-accent)" }} /> Knowledge
+          <Clock size={22} style={{ color: "#7c3aed" }} /> Knowledge
           Timeline
         </h1>
         <p
@@ -51,7 +51,7 @@ export default function TimelinePage() {
 
       {/* Growth chart */}
       {timeline.length > 0 && (
-        <div className="card p-6">
+        <div className="card p-6" style={{ borderRadius: "1.5rem" }}>
           <h3
             className="text-sm font-semibold flex items-center gap-2 mb-4"
             style={{ color: "var(--color-text-primary)" }}
@@ -78,7 +78,7 @@ export default function TimelinePage() {
                     style={{
                       height: `${Math.max(h, 5)}%`,
                       background:
-                        "linear-gradient(to top, var(--color-accent), var(--color-accent2))",
+                        "linear-gradient(to top, #7c3aed, #db2777)",
                       minHeight: "4px",
                     }}
                   />

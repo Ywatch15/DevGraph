@@ -4,7 +4,7 @@ import { notesAPI } from "@/lib/api";
 import { CATEGORY_MAP } from "@/lib/constants";
 import Link from "next/link";
 import { useState } from "react";
-import { Plus, Search, Filter, Trash2, Globe, Lock, X } from "lucide-react";
+import { Plus, Search, Filter, Trash2, Globe, Lock, X, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function NotesListPage() {
@@ -48,15 +48,15 @@ export default function NotesListPage() {
     : notes;
 
   return (
-    <div className="p-6 md:p-8 space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-springIn">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1
-            className="text-2xl font-bold"
-            style={{ color: "var(--color-text-primary)" }}
+            className="text-2xl font-semibold flex items-center gap-2"
+            style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
           >
-            My Notes
+            <FileText size={22} style={{ color: "#7c3aed" }} /> My Notes
           </h1>
           <p
             className="text-sm mt-0.5"

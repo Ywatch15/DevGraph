@@ -14,13 +14,13 @@ export default function TagsPage() {
   const maxCount = Math.max(...tags.map((t) => t.usageCount), 1);
 
   return (
-    <div className="p-6 md:p-8 space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-springIn">
       <div>
         <h1
-          className="text-2xl font-bold flex items-center gap-2"
-          style={{ color: "var(--color-text-primary)" }}
+          className="text-2xl font-semibold flex items-center gap-2"
+          style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
         >
-          <TagsIcon size={24} style={{ color: "var(--color-accent)" }} /> Tags
+          <TagsIcon size={22} style={{ color: "#7c3aed" }} /> Tags
         </h1>
         <p
           className="text-sm mt-0.5"
@@ -43,10 +43,10 @@ export default function TagsPage() {
       ) : tags.length > 0 ? (
         <>
           {/* Tag cloud */}
-          <div className="card p-6">
+          <div className="card p-6" style={{ borderRadius: "1.5rem" }}>
             <h3
-              className="text-sm font-semibold mb-4 flex items-center gap-2"
-              style={{ color: "var(--color-text-primary)" }}
+              className="label-section mb-4 flex items-center gap-2"
+              style={{ color: "var(--color-text-secondary)" }}
             >
               <TrendingUp size={14} /> Tag Cloud
             </h3>
@@ -77,7 +77,7 @@ export default function TagsPage() {
           </div>
 
           {/* Tag list */}
-          <div className="card p-0 overflow-hidden">
+          <div className="card p-0 overflow-hidden" style={{ borderRadius: "1.5rem" }}>
             <div
               className="px-5 py-3 border-b font-semibold text-xs"
               style={{
@@ -112,13 +112,14 @@ export default function TagsPage() {
                 <div className="w-32 ml-4">
                   <div
                     className="h-1.5 rounded-full overflow-hidden"
-                    style={{ background: "var(--color-bg-tertiary)" }}
+                    style={{ background: "rgba(255,255,255,0.04)" }}
                   >
                     <div
-                      className="h-full rounded-full"
+                      className="h-full rounded-full transition-all duration-700"
                       style={{
                         width: `${(tag.usageCount / maxCount) * 100}%`,
-                        background: "var(--color-accent)",
+                        background: "linear-gradient(90deg, #7c3aed, #db2777)",
+                        transitionTimingFunction: "var(--nm-spring)",
                       }}
                     />
                   </div>

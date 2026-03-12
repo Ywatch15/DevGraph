@@ -16,8 +16,13 @@ export default function MobileNav() {
 
   return (
     <nav
-      className="mobile-only fixed bottom-0 left-0 right-0 z-50 glass-strong"
-      style={{ borderTop: "1px solid var(--color-border)" }}
+      className="mobile-only fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: "rgba(5,5,9,0.85)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+        borderTop: "1px solid rgba(255,255,255,0.05)",
+      }}
     >
       <div className="flex items-center justify-around h-16 px-2">
         {MOBILE_TABS.map((tab) => {
@@ -33,10 +38,10 @@ export default function MobileNav() {
                 className="flex flex-col items-center gap-0.5 -mt-4"
               >
                 <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center glow-accent"
+                  className="w-12 h-12 rounded-xl flex items-center justify-center glow-accent"
                   style={{
                     background:
-                      "linear-gradient(135deg, var(--color-accent), #6b4ce6)",
+                      "linear-gradient(135deg, #7c3aed, #db2777)",
                   }}
                 >
                   <Icon size={22} color="white" />

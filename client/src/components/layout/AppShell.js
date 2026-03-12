@@ -4,9 +4,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
-import CommandPalette from "./CommandPalette";
+import { ChevronRight } from "lucide-react";
 
 const PUBLIC_ROUTES = ["/login", "/register", "/"];
+
+// Map pathname to breadcrumb labels
+function getBreadcrumb(pathname) {
+  const segments = pathname.split("/").filter(Boolean);
+  return segments.map((seg) => seg.charAt(0).toUpperCase() + seg.slice(1));
+}
 
 export default function AppShell({ children }) {
   const { user, loading } = useAuth();
@@ -54,17 +60,45 @@ export default function AppShell({ children }) {
   // Not logged in — redirect handled by useEffect
   if (!user) return null;
 
+  const breadcrumbs = getBreadcrumb(pathname);
+
   return (
     <div
       className="min-h-screen"
       style={{ background: "transparent" }}
     >
       <Sidebar />
-      <CommandPalette />
 
       {/* Main content area */}
-      <main className="md:ml-60 min-h-screen pb-20 md:pb-0">
-        <div className="max-w-7xl mx-auto">{children}</div>
+      <main className="md:ml-64 min-h-screen pb-20 md:pb-0">
+        {/* Sticky header */}
+        <div className="sticky-header">
+          <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
+            {/* Breadcrumb */}
+            <div className="flex items-center gap-1.5">
+              <span className="label-tech">DevGraph</span>
+              {breadcrumbs.map((crumb, i) => (
+                <span key={i} className="flex items-center gap-1.5">
+                  <ChevronRight size={12} style={{ color: "var(--color-text-muted)" }} />
+                  <span
+                    className="text-xs font-medium"
+                    style={{
+                      color: i === breadcrumbs.length - 1
+                        ? "var(--color-text-primary)"
+                        : "var(--color-text-muted)",
+                    }}
+                  >
+                    {crumb}
+                  </span>
+                </span>
+              ))}
+            </div>
+
+
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">{children}</div>
       </main>
 
       <MobileNav />
