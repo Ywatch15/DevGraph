@@ -1,4 +1,4 @@
-# DevGraph
+# DevGraph - [https://dev-graph-eight.vercel.app]
 
 DevGraph is a full-stack developer knowledge management platform for capturing notes, code snippets, bugs, fixes, commands, architecture decisions, and learning artifacts in one searchable system. It combines structured note-taking, full-text and prefix search, tag intelligence, related-note discovery, and a visual knowledge graph so a developer can store information once and retrieve it quickly later.
 
@@ -891,5 +891,3 @@ Potential next steps if you keep expanding the project:
 ---
 
 If you deploy this project publicly, keep this file descriptive but continue treating all real environment values and privileged credentials as secrets. This README is meant to help users, contributors, reviewers, and deployers understand the system without exposing sensitive operational data. Peace out ✌️
-
-Made with 💖 by Ywatch15
