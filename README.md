@@ -866,6 +866,7 @@ This project stands on top of several solid open-source tools and hosted service
 - FlexSearch
 - Vercel
 - Render
+- UptimeRobot
 
 ## Additional Notes
 
@@ -891,3 +892,7 @@ Potential next steps if you keep expanding the project:
 ---
 
 If you deploy this project publicly, keep this file descriptive but continue treating all real environment values and privileged credentials as secrets. This README is meant to help users, contributors, reviewers, and deployers understand the system without exposing sensitive operational data. Peace out ✌️
+
+---
+
+                      Made with 💖 by Ywatch15.
