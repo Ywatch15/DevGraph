@@ -788,6 +788,12 @@ High-level steps:
    - `CLIENT_URL`
 6. Deploy and note the public Render URL.
 
+If your hosting tier idles inactive services, you can use UptimeRobot to send periodic HTTP checks to the backend health endpoint so the API stays warm for smoother public access. In this project, that monitor target is:
+
+```text
+https://your-render-service.onrender.com/api/health
+```
+
 ### Frontend Deployment on Vercel
 
 High-level steps:
@@ -842,6 +848,10 @@ FlexSearch is built in memory per user session on the backend. If the process re
 
 Only notes marked as `public` should appear in the public feed. Private note access remains gated through backend auth and visibility checks.
 
+### Uptime Monitoring
+
+For seamless deployment behavior on hosts that may sleep after inactivity, configure UptimeRobot to ping the backend health route on a regular interval. The current health endpoint is `/api/health`, which makes it a suitable lightweight target for availability checks.
+
 ## Acknowledgements
 
 This project stands on top of several solid open-source tools and hosted services:
@@ -881,3 +891,5 @@ Potential next steps if you keep expanding the project:
 ---
 
 If you deploy this project publicly, keep this file descriptive but continue treating all real environment values and privileged credentials as secrets. This README is meant to help users, contributors, reviewers, and deployers understand the system without exposing sensitive operational data. Peace out ✌️
+
+Made with 💖 by Ywatch15
