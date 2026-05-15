@@ -30,10 +30,12 @@ export default function Providers({ children }) {
               background: "var(--color-bg-elevated)",
               color: "var(--color-text-primary)",
               border: "1px solid var(--color-border)",
-              fontSize: "0.875rem",
+              fontSize: "14px",
+              fontFamily: "var(--font-body)",
+              borderRadius: "10px",
             },
-            success: { iconTheme: { primary: "#2ed573", secondary: "white" } },
-            error: { iconTheme: { primary: "#ff4757", secondary: "white" } },
+            success: { iconTheme: { primary: "#10b981", secondary: "white" } },
+            error: { iconTheme: { primary: "#ef4444", secondary: "white" } },
           }}
         />
       </AuthProvider>

@@ -6,51 +6,54 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import {
   RefreshCw,
   Loader2,
-  Filter,
   ZoomIn,
   ZoomOut,
   Maximize2,
+  Crosshair,
+  Search,
+  X,
   Share2,
+  ArrowRight,
+  FileText,
+  Tag,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { SkeletonGraphCard } from "@/components/ui/Skeleton";
 
 const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), {
   ssr: false,
-  loading: () => (
-    <div
-      className="h-150 shimmer rounded-lg"
-      style={{ background: "var(--color-bg-tertiary)" }}
-    />
-  ),
+  loading: () => <SkeletonGraphCard />,
 });
 
 const CATEGORY_COLORS = {
   "bug-fix": "#ef4444",
-  snippet: "#7c3aed",
-  architecture: "#3b82f6",
+  snippet: "#8b5cf6",
+  architecture: "#f59e0b",
   command: "#10b981",
-  config: "#f59e0b",
-  learning: "#10b981",
-  other: "#94a3b8",
+  config: "#3b82f6",
+  learning: "#06b6d4",
+  other: "#6b7280",
 };
 
 const CATEGORY_META = {
   "bug-fix": { label: "Bug Fix", emoji: "🐛", color: "#ef4444" },
-  snippet: { label: "Snippet", emoji: "✂️", color: "#7c3aed" },
-  architecture: { label: "Architecture", emoji: "🏗️", color: "#3b82f6" },
+  snippet: { label: "Snippet", emoji: "✂️", color: "#8b5cf6" },
+  architecture: { label: "Architecture", emoji: "🏗️", color: "#f59e0b" },
   command: { label: "Command", emoji: "⌨️", color: "#10b981" },
-  config: { label: "Config", emoji: "⚙️", color: "#f59e0b" },
-  learning: { label: "Learning", emoji: "📚", color: "#10b981" },
-  other: { label: "Other", emoji: "📌", color: "#94a3b8" },
+  config: { label: "Config", emoji: "⚙️", color: "#3b82f6" },
+  learning: { label: "Learning", emoji: "📚", color: "#06b6d4" },
+  other: { label: "Other", emoji: "📌", color: "#6b7280" },
 };
 
 export default function GraphPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const graphRef = useRef();
-  const [filterTag, setFilterTag] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedNode, setSelectedNode] = useState(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   const {
@@ -78,7 +81,7 @@ export default function GraphPage() {
       if (el)
         setDimensions({
           width: el.clientWidth,
-          height: Math.max(window.innerHeight - 200, 400),
+          height: Math.max(window.innerHeight - 280, 400),
         });
     };
     updateDimensions();
@@ -86,19 +89,33 @@ export default function GraphPage() {
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
-  // Filter nodes by tag
+  // Build graph data with filtering
   const filteredData = (() => {
     if (!graphData) return { nodes: [], links: [] };
     let nodes = graphData.nodes || [];
     let edges = graphData.edges || [];
 
-    if (filterTag) {
-      nodes = nodes.filter((n) => n.tags?.includes(filterTag));
-    }
+    // Build connection count map
+    const connectionCount = {};
+    edges.forEach((e) => {
+      connectionCount[e.source] = (connectionCount[e.source] || 0) + 1;
+      connectionCount[e.target] = (connectionCount[e.target] || 0) + 1;
+    });
+
+    // Search matching
+    const matchingIds = searchQuery
+      ? new Set(
+          nodes
+            .filter((n) =>
+              n.title?.toLowerCase().includes(searchQuery.toLowerCase()),
+            )
+            .map((n) => n.id),
+        )
+      : null;
+
+    // Category filter
     if (filterCategory) {
       nodes = nodes.filter((n) => n.category === filterCategory);
-    }
-    if (filterTag || filterCategory) {
       const nodeIds = new Set(nodes.map((n) => n.id));
       edges = edges.filter(
         (e) => nodeIds.has(e.source) && nodeIds.has(e.target),
@@ -108,82 +125,136 @@ export default function GraphPage() {
     return {
       nodes: nodes.map((n) => ({
         ...n,
-        val: Math.max(2, (n.connections || 0) + 1),
+        val: Math.min(28, 8 + (connectionCount[n.id] || 0) * 3),
+        _dimmed: matchingIds ? !matchingIds.has(n.id) : false,
+        _connections: connectionCount[n.id] || 0,
       })),
       links: edges.map((e) => ({
         source: e.source,
         target: e.target,
         weight: e.weight,
+        relationType: e.relationType,
+        sharedTags: e.sharedTags,
       })),
     };
   })();
 
-  // All tags in current graph
-  const allTags = [
-    ...new Set((graphData?.nodes || []).flatMap((n) => n.tags || [])),
-  ].sort();
+  // Camera to best match on search
+  useEffect(() => {
+    if (searchQuery && graphRef.current) {
+      const match = filteredData.nodes.find(
+        (n) => !n._dimmed,
+      );
+      if (match && match.x !== undefined) {
+        graphRef.current.centerAt(match.x, match.y, 500);
+        graphRef.current.zoom(2, 500);
+      }
+    }
+  }, [searchQuery, filteredData.nodes]);
 
   const handleNodeClick = useCallback(
     (node) => {
-      router.push(`/notes/${node.id}`);
+      setSelectedNode(node);
     },
-    [router],
+    [],
   );
 
-  const nodeCanvasObject = useCallback((node, ctx) => {
-    const size = Math.max(4, (node.connections || 0) * 1.5 + 4);
-    const color = CATEGORY_COLORS[node.category] || "#a0a0b8";
+  const nodeCanvasObject = useCallback(
+    (node, ctx, globalScale) => {
+      const size = Math.min(28, 8 + (node._connections || 0) * 3) / 2;
+      const color = CATEGORY_COLORS[node.category] || "#6b7280";
+      const dimmed = node._dimmed;
+      const alpha = dimmed ? 0.2 : 1;
 
-    // Glow
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.shadowBlur = 0;
+      ctx.globalAlpha = alpha;
 
-    // Label
-    ctx.font = "3px 'Satoshi', sans-serif";
-    ctx.fillStyle = "#e8e8f0";
-    ctx.textAlign = "center";
-    ctx.fillText(node.title?.slice(0, 25) || "", node.x, node.y + size + 5);
-  }, []);
+      // Pulse ring for isolated nodes
+      if (node._connections === 0 && !dimmed) {
+        const pulsePhase = (Date.now() % 2000) / 2000;
+        const pulseRadius = size + 4 + Math.sin(pulsePhase * Math.PI * 2) * 3;
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, pulseRadius, 0, 2 * Math.PI);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 0.5;
+        ctx.globalAlpha = alpha * (0.3 + Math.sin(pulsePhase * Math.PI * 2) * 0.2);
+        ctx.stroke();
+        ctx.globalAlpha = alpha;
+      }
+
+      // Glow
+      ctx.shadowColor = color;
+      ctx.shadowBlur = dimmed ? 0 : 8;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, size, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Label (hide when zoomed out)
+      if (globalScale > 0.6 && !dimmed) {
+        const fontSize = 11 / globalScale;
+        ctx.font = `${fontSize}px Inter, sans-serif`;
+        ctx.fillStyle = `rgba(255,255,255,${0.85 * alpha})`;
+        ctx.textAlign = "center";
+        ctx.fillText(
+          node.title?.slice(0, 25) || "",
+          node.x,
+          node.y + size + fontSize + 2,
+        );
+      }
+
+      ctx.globalAlpha = 1;
+    },
+    [],
+  );
+
+  // Get connected nodes for side panel
+  const getConnectedNodes = (nodeId) => {
+    if (!graphData) return [];
+    const edges = graphData.edges || [];
+    const connectedIds = new Set();
+    edges.forEach((e) => {
+      if (e.source === nodeId) connectedIds.add(e.target);
+      if (e.target === nodeId) connectedIds.add(e.source);
+    });
+    return (graphData.nodes || []).filter((n) => connectedIds.has(n.id));
+  };
 
   return (
-    <div className="space-y-4 animate-springIn">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1
-            className="text-2xl font-semibold flex items-center gap-2 page-heading"
+            className="page-heading flex items-center gap-2"
+            style={{ fontSize: 28 }}
           >
-            <Share2 size={22} className="heading-icon" style={{ color: "#7c3aed" }} /> Knowledge Graph
+            <Share2 size={22} className="heading-icon" style={{ color: "#8b5cf6" }} /> Knowledge Graph
           </h1>
           <p
-            className="text-sm mt-0.5 page-subtitle"
-            style={{ color: "var(--color-text-muted)" }}
+            style={{
+              fontSize: 14,
+              color: "var(--color-text-secondary)",
+              marginTop: 4,
+            }}
           >
-            {filteredData.nodes.length} nodes · {filteredData.links.length}{" "}
-            connections
+            <span
+              style={{
+                display: "inline-block",
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#10b981",
+                marginRight: 6,
+              }}
+            />
+            {filteredData.nodes.length} nodes · {filteredData.links.length} connections
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <select
-            value={filterTag}
-            onChange={(e) => setFilterTag(e.target.value)}
-            className="input w-auto text-sm"
-          >
-            <option value="">All Tags</option>
-            {allTags.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
           <button
             onClick={() => generateMutation.mutate()}
-            className="btn-primary text-sm"
+            className="btn-primary"
             disabled={generateMutation.isPending}
           >
             {generateMutation.isPending ? (
@@ -191,38 +262,155 @@ export default function GraphPage() {
             ) : (
               <RefreshCw size={14} />
             )}
-            Regenerate
+            Generate Graph
           </button>
         </div>
       </div>
 
-      {/* Graph */}
+      {/* Graph container */}
       <div
         id="graph-container"
-        className="rounded-2xl overflow-hidden border nm-flat"
+        className="relative"
         style={{
-          background: "var(--color-bg-primary)",
-          borderColor: "var(--color-border)",
+          borderRadius: 14,
+          overflow: "hidden",
+          border: "1px solid var(--color-border)",
+          background: "#08080e",
+          padding: 8,
         }}
       >
-        {isLoading ? (
-          <div className="h-150 flex items-center justify-center">
-            <Loader2
-              size={32}
-              className="animate-spin"
-              style={{ color: "var(--color-accent)" }}
+        {/* Search inside graph */}
+        <div
+          style={{
+            position: "absolute",
+            top: 16,
+            left: 16,
+            zIndex: 10,
+            width: 240,
+          }}
+        >
+          <div className="relative">
+            <Search
+              size={14}
+              style={{
+                position: "absolute",
+                left: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "var(--color-text-muted)",
+                pointerEvents: "none",
+              }}
+            />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search nodes..."
+              style={{
+                width: "100%",
+                background: "rgba(17,17,24,0.9)",
+                border: "1px solid var(--color-border)",
+                borderRadius: 8,
+                padding: "8px 12px 8px 32px",
+                fontSize: 13,
+                color: "var(--color-text-primary)",
+                outline: "none",
+                backdropFilter: "blur(10px)",
+              }}
             />
           </div>
+        </div>
+
+        {/* Floating controls */}
+        <div
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            zIndex: 10,
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            background: "rgba(17,17,24,0.85)",
+            border: "1px solid var(--color-border)",
+            borderRadius: 10,
+            padding: 4,
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          {[
+            { icon: ZoomIn, action: () => graphRef.current?.zoom(graphRef.current.zoom() * 1.5, 300), title: "Zoom In" },
+            { icon: ZoomOut, action: () => graphRef.current?.zoom(graphRef.current.zoom() / 1.5, 300), title: "Zoom Out" },
+            { icon: Maximize2, action: () => graphRef.current?.zoomToFit(400, 40), title: "Fit" },
+            { icon: Crosshair, action: () => graphRef.current?.centerAt(0, 0, 400), title: "Center" },
+          ].map((ctrl, i) => (
+            <button
+              key={i}
+              onClick={ctrl.action}
+              title={ctrl.title}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 8,
+                border: "none",
+                background: "transparent",
+                color: "var(--color-text-secondary)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 150ms ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(139,92,246,0.1)";
+                e.currentTarget.style.color = "var(--color-text-primary)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "var(--color-text-secondary)";
+              }}
+            >
+              <ctrl.icon size={16} />
+            </button>
+          ))}
+        </div>
+
+        {isLoading ? (
+          <SkeletonGraphCard />
         ) : filteredData.nodes.length === 0 ? (
-          <div className="h-100 flex flex-col items-center justify-center">
-            <Maximize2
-              size={40}
-              className="mb-3"
-              style={{ color: "var(--color-text-muted)" }}
-            />
-            <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-              No graph data yet. Create some notes and click Regenerate.
+          <div
+            className="flex flex-col items-center justify-center"
+            style={{ height: 400 }}
+          >
+            <div className="animate-pulse-ring" style={{
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              background: "rgba(139,92,246,0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 16,
+            }}>
+              <Share2 size={28} style={{ color: "var(--color-text-muted)" }} />
+            </div>
+            <h3 style={{ fontSize: 18, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: 8 }}>
+              No connections yet
+            </h3>
+            <p style={{ fontSize: 14, color: "var(--color-text-muted)", textAlign: "center", maxWidth: 320, marginBottom: 16 }}>
+              Add more notes with shared tags to see relationships form
             </p>
+            <button
+              onClick={() => generateMutation.mutate()}
+              className="btn-primary"
+              disabled={generateMutation.isPending}
+            >
+              {generateMutation.isPending ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <RefreshCw size={14} />
+              )}
+              Generate Graph
+            </button>
           </div>
         ) : (
           <ForceGraph2D
@@ -232,26 +420,147 @@ export default function GraphPage() {
             height={dimensions.height}
             nodeCanvasObject={nodeCanvasObject}
             nodePointerAreaPaint={(node, color, ctx) => {
-              const size = Math.max(4, (node.connections || 0) * 1.5 + 4);
+              const size = Math.min(28, 8 + (node._connections || 0) * 3) / 2;
               ctx.beginPath();
-              ctx.arc(node.x, node.y, size + 3, 0, 2 * Math.PI);
+              ctx.arc(node.x, node.y, size + 5, 0, 2 * Math.PI);
               ctx.fillStyle = color;
               ctx.fill();
             }}
             onNodeClick={handleNodeClick}
-            linkColor={() => "rgba(124, 58, 237, 0.15)"}
+            linkColor={() => "rgba(139, 92, 246, 0.4)"}
             linkWidth={(link) => Math.max(0.5, (link.weight || 0) * 2)}
             backgroundColor="transparent"
             cooldownTicks={100}
             nodeRelSize={5}
             d3AlphaDecay={0.02}
             d3VelocityDecay={0.3}
+            linkDirectionalParticles={2}
+            linkDirectionalParticleSpeed={0.004}
+            linkDirectionalParticleColor={() => "#8b5cf6"}
           />
+        )}
+
+        {/* Node detail side panel */}
+        {selectedNode && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              width: 300,
+              background: "var(--color-bg-card)",
+              borderLeft: "1px solid var(--color-border)",
+              padding: 20,
+              zIndex: 20,
+              overflowY: "auto",
+              animation: "slideInRight 250ms ease",
+            }}
+          >
+            <style>{`
+              @keyframes slideInRight {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+              }
+            `}</style>
+            <button
+              onClick={() => setSelectedNode(null)}
+              style={{
+                position: "absolute",
+                top: 12,
+                right: 12,
+                background: "transparent",
+                border: "none",
+                color: "var(--color-text-muted)",
+                cursor: "pointer",
+                padding: 4,
+              }}
+            >
+              <X size={18} />
+            </button>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--color-text-primary)", marginBottom: 8, paddingRight: 24 }}>
+              {selectedNode.title}
+            </h3>
+            <span className="badge badge-accent" style={{ marginBottom: 12, display: "inline-flex" }}>
+              {CATEGORY_META[selectedNode.category]?.emoji} {CATEGORY_META[selectedNode.category]?.label || selectedNode.category}
+            </span>
+            {selectedNode.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-1" style={{ marginBottom: 12, marginTop: 8 }}>
+                {selectedNode.tags.map((t) => (
+                  <span key={t} className="badge badge-accent" style={{ fontSize: 11 }}>
+                    <Tag size={10} style={{ marginRight: 3 }} /> {t}
+                  </span>
+                ))}
+              </div>
+            )}
+            {selectedNode.description && (
+              <p style={{ fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6, marginBottom: 16 }}>
+                {selectedNode.description?.slice(0, 150)}{selectedNode.description?.length > 150 ? "..." : ""}
+              </p>
+            )}
+            <Link
+              href={`/notes/${selectedNode.id}`}
+              className="btn-primary"
+              style={{ width: "100%", justifyContent: "center", marginBottom: 16 }}
+            >
+              <FileText size={14} /> Open Note
+            </Link>
+            {/* Connected nodes */}
+            {getConnectedNodes(selectedNode.id).length > 0 && (
+              <div>
+                <h4 style={{ fontSize: 13, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-muted)", marginBottom: 8 }}>
+                  Connected Notes
+                </h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {getConnectedNodes(selectedNode.id).map((cn) => (
+                    <button
+                      key={cn.id}
+                      onClick={() => {
+                        setSelectedNode(cn);
+                        if (graphRef.current && cn.x !== undefined) {
+                          graphRef.current.centerAt(cn.x, cn.y, 500);
+                        }
+                      }}
+                      className="list-row"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "8px 10px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: "transparent",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        width: "100%",
+                        fontSize: 13,
+                        color: "var(--color-text-secondary)",
+                      }}
+                    >
+                      <span style={{ color: CATEGORY_COLORS[cn.category] || "#6b7280" }}>
+                        {CATEGORY_META[cn.category]?.emoji || "📌"}
+                      </span>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {cn.title}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Category Legend — Interactive Chips */}
-      <div className="flex flex-wrap gap-2">
+      {/* Category Legend */}
+      <div
+        className="flex items-center flex-wrap gap-4"
+        style={{
+          height: 48,
+          fontSize: 13,
+          padding: "12px 20px",
+        }}
+      >
         {Object.entries(CATEGORY_META).map(([cat, meta]) => {
           const isActive = filterCategory === cat;
           const count = (graphData?.nodes || []).filter((n) => n.category === cat).length;
@@ -259,25 +568,28 @@ export default function GraphPage() {
             <button
               key={cat}
               onClick={() => setFilterCategory(isActive ? "" : cat)}
-              className="group flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-300"
               style={{
-                background: isActive
-                  ? `${meta.color}20`
-                  : "var(--color-bg-tertiary)",
-                border: `1px solid ${isActive ? `${meta.color}60` : "var(--color-border)"}`,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "4px 12px",
+                borderRadius: 20,
+                border: `1px solid ${isActive ? "var(--color-accent-primary)" : "var(--color-border)"}`,
+                background: isActive ? "rgba(139,92,246,0.1)" : "transparent",
                 color: isActive ? meta.color : "var(--color-text-secondary)",
-                boxShadow: isActive ? `0 0 16px ${meta.color}25` : "none",
-                transform: isActive ? "scale(1.04)" : "scale(1)",
+                cursor: "pointer",
+                fontSize: 13,
+                transition: "all 150ms ease",
               }}
             >
-              <span className="text-base leading-none">{meta.emoji}</span>
+              <span>{meta.emoji}</span>
               <span>{meta.label}</span>
               {count > 0 && (
                 <span
-                  className="ml-0.5 px-1.5 py-0.5 rounded-md text-xs font-semibold leading-none transition-colors"
                   style={{
-                    background: isActive ? `${meta.color}30` : "var(--color-bg-hover)",
-                    color: isActive ? meta.color : "var(--color-text-muted)",
+                    fontSize: 11,
+                    color: "var(--color-text-muted)",
+                    fontFamily: "var(--font-mono)",
                   }}
                 >
                   {count}
@@ -289,14 +601,20 @@ export default function GraphPage() {
         {filterCategory && (
           <button
             onClick={() => setFilterCategory("")}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-all"
             style={{
-              background: "var(--color-bg-tertiary)",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              padding: "4px 12px",
+              borderRadius: 20,
               border: "1px solid var(--color-border)",
+              background: "transparent",
               color: "var(--color-text-muted)",
+              cursor: "pointer",
+              fontSize: 13,
             }}
           >
-            ✕ Clear filter
+            ✕ Clear
           </button>
         )}
       </div>

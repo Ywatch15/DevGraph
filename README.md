@@ -10,23 +10,24 @@ This README is intentionally deployment-safe. It documents configuration keys, a
 
 1. Overview
 2. Core Features
-3. Product Goals
-4. Tech Stack
-5. Monorepo Structure
-6. Frontend Pages and UX Surface
-7. Shared Data Model
-8. System Architecture
-9. Request and Data Flow
-10. Local Development
-11. Environment Configuration
-12. API Reference
-13. Database Schema
-14. Security Notes
-15. Testing and Validation
-16. Deployment
-17. Operations Notes
-18. Acknowledgements
-19. Additional Notes
+3. Latest Updates
+4. Product Goals
+5. Tech Stack
+6. Monorepo Structure
+7. Frontend Pages and UX Surface
+8. Shared Data Model
+9. System Architecture
+10. Request and Data Flow
+11. Local Development
+12. Environment Configuration
+13. API Reference
+14. Database Schema
+15. Security Notes
+16. Testing and Validation
+17. Deployment
+18. Operations Notes
+19. Acknowledgements
+20. Additional Notes
 
 ## Overview
 
@@ -72,6 +73,13 @@ Supported note categories in the current implementation:
 
 The note editor uses Monaco, which provides a familiar IDE-like editing experience for stored code snippets. The editor supports syntax-highlighted snippet storage and client-side copy actions.
 
+**Recent Editor Enhancements:**
+- Smooth cursor animation (`cursorSmoothCaretAnimation: "on"`) for fluid caret movement
+- Expanding cursor blink (`cursorBlinking: "expand"`) for better visibility
+- Smooth scrolling (`smoothScrolling: true`) for polished viewport interactions
+- Bracket pair colorization (`bracketPairColorization: { enabled: true }`) for improved code readability
+- Keyboard shortcut protection prevents global shortcuts (e.g., 'n' key) from interfering with editor input
+
 ### 3. Intelligent Search
 
 The search implementation combines multiple layers:
@@ -107,11 +115,52 @@ Tags are normalized and tracked through database triggers. This enables:
 
 The frontend includes:
 
-- animated page headings
+- animated page headings and smooth entrance transitions
+- framer-motion-powered component animations for form fields and editor panels
+- smooth tag suggestion dropdown with z-index layering for proper visibility
 - branded favicon and inline iconography
 - a responsive sidebar and mobile navigation
 - background shader and visual polish
 - graph legend interactions and filters
+- polished loading states and skeleton animations
+
+## Latest Updates
+
+### Note Editor Improvements (v1.1)
+
+The note editor component (`/notes/[id]`) has received significant UX and responsiveness enhancements:
+
+#### Keyboard Interaction Fixes
+- **Fixed 'n' key interception**: Global keyboard shortcuts no longer interfere with editor input. The shortcut handler now detects when focus is inside the Monaco editor and skips interception.
+- **Improved keyboard event handling**: Added `.closest('.monaco-editor')` check to prevent unintended global navigation triggers during active editing.
+
+#### Visual and Animation Enhancements
+- **Smooth entrance animations**: Implemented framer-motion for staggered animations:
+  - Title input: fade-in + y-translation (0s delay)
+  - Description textarea: fade-in + y-translation (0.05s delay)
+  - Monaco editor container: scale + fade-in (0.1s delay)
+  - Preset tags dropdown: scaleY animation (0.15s delay)
+- **Tag suggestion visibility**: Increased z-index from z-10 to z-50 to prevent suggestions from being hidden behind other UI elements. Added smooth scaleY animation for dropdown appearance.
+
+#### Monaco Editor Configuration
+The Monaco editor options have been enhanced for better responsiveness and visual feedback:
+
+```javascript
+{
+  minimap: { enabled: false },
+  fontSize: 13,
+  fontFamily: "JetBrains Mono, Fira Code, monospace",
+  cursorSmoothCaretAnimation: "on",      // Smooth cursor movement
+  cursorBlinking: "expand",               // Expanding blink pattern
+  smoothScrolling: true,                  // Fluid scrolling
+  bracketPairColorization: { enabled: true },  // Syntax colorization
+  scrollbar: { useShadows: false, vertical: "auto", horizontal: "auto" },
+  // ... other options
+}
+```
+
+#### Dependencies Added
+- **framer-motion 12.38.0**: Powers smooth component animations and transitions throughout the note editor interface.
 
 ## Product Goals
 
@@ -134,6 +183,7 @@ DevGraph is not just a CRUD notes app. The implementation is structured around a
 - Axios
 - Monaco Editor via `@monaco-editor/react`
 - Lucide React icons
+- `framer-motion` for component animations and transitions
 - `react-force-graph-2d` for graph rendering
 - `react-hot-toast` for notifications
 
@@ -223,9 +273,11 @@ The frontend uses Next.js App Router pages under `client/src/app`.
 
 - `/notes/[id]`
   - Note create/edit/detail surface
-  - Monaco editor
-  - metadata controls
-  - related notes panel
+  - Monaco editor with enhanced cursor animations, smooth scrolling, and bracket pair colorization
+  - Smooth framer-motion entrance animations for form fields and editor panels
+  - Tag suggestions with proper z-index layering and dropdown animations
+  - metadata controls for category, language, source URL, visibility, and tags
+  - related notes panel showing contextually relevant notes
 
 - `/search`
   - Search interface

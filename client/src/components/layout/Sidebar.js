@@ -12,10 +12,7 @@ import {
   Code2,
   Settings,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
-import { useState } from "react";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -31,151 +28,222 @@ const NAV_ITEMS = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <aside
-      className={`desktop-only fixed left-0 top-0 h-screen flex flex-col transition-all duration-300 z-40 ${
-        collapsed ? "w-[68px]" : "w-[256px]"
-      }`}
+      className="desktop-only fixed left-0 top-0 h-screen flex flex-col z-40"
       style={{
-        background: "rgba(10, 10, 24, 0.55)",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(10px)",
-        borderRight: "1px solid rgba(255,255,255,0.06)",
+        width: 220,
+        background: "#0d0d14",
+        borderRight: "1px solid var(--color-border)",
       }}
     >
       {/* Logo */}
       <Link
         href="/"
-        className="flex items-center gap-3 px-5 h-16 border-b"
-        style={{ borderColor: "rgba(255,255,255,0.05)" }}
+        className="flex items-center gap-3"
+        style={{
+          padding: "20px 16px",
+          borderBottom: "1px solid var(--color-border)",
+        }}
       >
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
           style={{
-            background: "linear-gradient(135deg, #7c3aed, #db2777)",
+            background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
           }}
         >
-          <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="16" height="16" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 8L16 16L10 24" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
             <path d="M16 22L24 22" stroke="#00d4aa" strokeWidth="2.8" strokeLinecap="round"/>
           </svg>
         </div>
-        {!collapsed && (
-          <span
-            className="font-semibold text-lg tracking-tight"
-            style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
-          >
-            DevGraph
-          </span>
-        )}
+        <span
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontWeight: 700,
+            fontSize: 16,
+            color: "var(--color-text-primary)",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          DevGraph
+        </span>
       </Link>
 
       {/* Section label */}
-      {!collapsed && (
-        <div className="px-5 pt-5 pb-2">
-          <span className="label-tech" style={{ color: "var(--color-text-muted)" }}>
-            Navigation
-          </span>
-        </div>
-      )}
+      <div style={{ padding: "20px 16px 8px 16px" }}>
+        <span
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.1em",
+            color: "var(--color-text-muted)",
+            textTransform: "uppercase",
+            fontWeight: 500,
+          }}
+        >
+          Navigation
+        </span>
+      </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-2 px-3 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map((item) => {
-          const isActive =
-            pathname === item.href || pathname?.startsWith(item.href + "/");
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${
-                collapsed ? "justify-center" : ""
-              }`}
-              style={{
-                background: isActive
-                  ? "rgba(124, 58, 237, 0.08)"
-                  : "transparent",
-                color: isActive
-                  ? "#8b5cf6"
-                  : "var(--color-text-secondary)",
-                transitionDuration: "0.3s",
-                transitionTimingFunction: "var(--nm-spring)",
-              }}
-              title={collapsed ? item.label : undefined}
-            >
-              {/* Active indicator — right border */}
-              {isActive && (
-                <div
-                  className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-l-full"
-                  style={{ background: "#7c3aed" }}
+      <nav
+        className="flex-1 overflow-y-auto"
+        style={{ padding: "4px 8px" }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {NAV_ITEMS.map((item) => {
+            const isActive =
+              pathname === item.href || pathname?.startsWith(item.href + "/");
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  fontSize: 13.5,
+                  fontWeight: 500,
+                  color: isActive ? "white" : "var(--color-text-secondary)",
+                  background: isActive
+                    ? "rgba(139,92,246,0.15)"
+                    : "transparent",
+                  transition: "all 150ms ease",
+                  textDecoration: "none",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = "rgba(139,92,246,0.08)";
+                    e.currentTarget.style.color = "var(--color-text-primary)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "var(--color-text-secondary)";
+                  }
+                }}
+              >
+                <Icon
+                  size={18}
+                  className="flex-shrink-0"
+                  style={{
+                    color: isActive
+                      ? "var(--color-accent-primary)"
+                      : "inherit",
+                  }}
                 />
-              )}
-              <Icon size={18} className="flex-shrink-0" />
-              {!collapsed && (
-                <span
-                  className="text-sm font-semibold uppercase"
-                  style={{ letterSpacing: "0.08em" }}
-                >
-                  {item.label}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
       {/* User section */}
       <div
-        className="border-t p-3"
-        style={{ borderColor: "rgba(255,255,255,0.05)" }}
+        style={{
+          borderTop: "1px solid var(--color-border)",
+          padding: 12,
+        }}
       >
-        {!collapsed && user && (
-          <div className="flex items-center gap-3 mb-3 px-2">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #7c3aed, #db2777)",
-                color: "white",
-              }}
-            >
-              {user.name?.charAt(0).toUpperCase()}
+        {user && (
+          <div
+            className="flex items-center gap-3"
+            style={{ padding: "4px 4px 12px 4px" }}
+          >
+            {/* Avatar with accent ring and online dot */}
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
+                  color: "white",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  border: "2px solid var(--color-accent-primary)",
+                }}
+              >
+                {user.name?.charAt(0).toUpperCase()}
+              </div>
+              {/* Online dot */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  right: 0,
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "#10b981",
+                  border: "2px solid #0a0a0f",
+                }}
+              />
             </div>
-            <div className="min-w-0">
+            <div style={{ minWidth: 0, flex: 1 }}>
               <p
-                className="text-sm font-medium truncate"
-                style={{ color: "var(--color-text-primary)" }}
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "var(--color-text-primary)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
               >
                 {user.name}
               </p>
               <p
-                className="text-sm truncate"
-                style={{ color: "var(--color-text-muted)" }}
+                style={{
+                  fontSize: 12,
+                  fontFamily: "var(--font-mono)",
+                  color: "var(--color-text-muted)",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
               >
                 {user.email}
               </p>
             </div>
           </div>
         )}
-        <div className={`flex ${collapsed ? "flex-col" : "flex-row"} gap-1`}>
-          <button
-            onClick={logout}
-            className={`btn-ghost justify-center ${collapsed ? "w-full" : "flex-1"}`}
-            title="Logout"
-          >
-            <LogOut size={16} />
-            {!collapsed && <span>Logout</span>}
-          </button>
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className={`btn-ghost justify-center ${collapsed ? "w-full" : "flex-1"}`}
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-          </button>
-        </div>
+
+        {/* Sign Out button */}
+        <button
+          onClick={logout}
+          className="flex items-center gap-2 w-full"
+          style={{
+            padding: "8px 12px",
+            borderRadius: 10,
+            border: "none",
+            background: "transparent",
+            color: "var(--color-text-muted)",
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: "pointer",
+            transition: "all 150ms ease",
+            textAlign: "left",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "#ef4444";
+            e.currentTarget.style.background = "rgba(239,68,68,0.06)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--color-text-muted)";
+            e.currentTarget.style.background = "transparent";
+          }}
+        >
+          <LogOut size={16} />
+          <span>Sign Out</span>
+        </button>
       </div>
     </aside>
   );

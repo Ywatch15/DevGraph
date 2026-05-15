@@ -1,14 +1,17 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { AuthUI } from "@/components/ui/auth-fuse";
 import toast from "react-hot-toast";
 
-export default function LoginPage() {
+function LoginInner() {
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const redirectTo = searchParams?.get("redirect") || "/dashboard";
 
   const handleSignIn = async (e) => {
     e.preventDefault();
@@ -19,7 +22,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
       toast.success("Welcome back!");
-      router.push("/dashboard");
+      router.push(redirectTo);
     } catch (err) {
       toast.error(err.response?.data?.error || "Login failed");
     }
@@ -40,7 +43,7 @@ export default function LoginPage() {
     try {
       await register(name, email, password);
       toast.success("Account created! Welcome to DevGraph");
-      router.push("/dashboard");
+      router.push(redirectTo);
     } catch (err) {
       toast.error(err.response?.data?.error || "Registration failed");
     }
@@ -66,5 +69,17 @@ export default function LoginPage() {
         },
       }}
     />
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen" style={{ background: "var(--color-bg-base)" }}>
+        <div className="skeleton" style={{ width: 48, height: 48, borderRadius: 12 }} />
+      </div>
+    }>
+      <LoginInner />
+    </Suspense>
   );
 }

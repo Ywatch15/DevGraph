@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -246,12 +247,15 @@ export default function NoteEditorPage({ params }) {
         {/* Editor area (3 cols) */}
         <div className="lg:col-span-3 space-y-5">
           {/* Title */}
-          <input
+          <motion.input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="w-full bg-transparent border-none outline-none text-2xl font-semibold"
             placeholder="Untitled note..."
             style={{ color: "var(--color-text-primary)", fontFamily: "var(--font-sans)" }}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           />
 
           {/* Category + Language + Source URL */}
@@ -295,13 +299,16 @@ export default function NoteEditorPage({ params }) {
                 Description
               </label>
             </div>
-            <textarea
+            <motion.textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
               className="input resize-y"
               placeholder="Describe the problem, solution, or concept..."
               style={{ fontFamily: "var(--font-sans)" }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.05 }}
             />
           </div>
 
@@ -321,9 +328,12 @@ export default function NoteEditorPage({ params }) {
                 </button>
               )}
             </div>
-            <div
+            <motion.div
               className="rounded-xl overflow-hidden border"
               style={{ borderColor: "var(--color-border)" }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
             >
               <MonacoEditor
                 height="320px"
@@ -343,14 +353,19 @@ export default function NoteEditorPage({ params }) {
                   fontFamily: "JetBrains Mono, Fira Code, monospace",
                   lineNumbers: "on",
                   scrollBeyondLastLine: false,
-                  padding: { top: 12 },
+                  padding: { top: 12, bottom: 12 },
                   wordWrap: "on",
                   renderLineHighlight: "gutter",
                   tabSize: 2,
                   automaticLayout: true,
+                  scrollbar: { useShadows: false, vertical: "auto", horizontal: "auto" },
+                  cursorSmoothCaretAnimation: "on",
+                  cursorBlinking: "expand",
+                  smoothScrolling: true,
+                  bracketPairColorization: { enabled: true },
                 }}
               />
-            </div>
+            </motion.div>
           </div>
 
           {/* Tags section */}
@@ -380,12 +395,16 @@ export default function NoteEditorPage({ params }) {
 
             {/* Preset tags dropdown */}
             {showPresetTags && (
-              <div
+              <motion.div
                 className="flex flex-wrap gap-1.5 mb-3 p-3 rounded-lg animate-fadeIn"
                 style={{
                   background: "var(--color-bg-tertiary)",
                   border: "1px solid var(--color-border)",
                 }}
+                initial={{ opacity: 0, y: -8, scaleY: 0.95 }}
+                animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                exit={{ opacity: 0, y: -8, scaleY: 0.95 }}
+                transition={{ duration: 0.2 }}
               >
                 {availablePresets.map((t) => (
                   <button
@@ -404,7 +423,7 @@ export default function NoteEditorPage({ params }) {
                     All popular tags are already added!
                   </p>
                 )}
-              </div>
+              </motion.div>
             )}
 
             {/* Current tags */}
@@ -445,12 +464,16 @@ export default function NoteEditorPage({ params }) {
                 placeholder="Type to add tags (Enter to add)..."
               />
               {tagSuggestions.length > 0 && (
-                <div
-                  className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-10 shadow-xl"
+                <motion.div
+                  className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-50 shadow-xl"
                   style={{
                     background: "var(--color-bg-elevated)",
                     border: "1px solid var(--color-border)",
                   }}
+                  initial={{ opacity: 0, y: -8, scaleY: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                  exit={{ opacity: 0, y: -8, scaleY: 0.95 }}
+                  transition={{ duration: 0.15 }}
                 >
                   {tagSuggestions.slice(0, 6).map((s) => (
                     <button
@@ -474,7 +497,7 @@ export default function NoteEditorPage({ params }) {
                       </span>
                     </button>
                   ))}
-                </div>
+                </motion.div>
               )}
             </div>
           </div>
