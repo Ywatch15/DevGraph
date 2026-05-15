@@ -97,16 +97,23 @@ function AccordionCard({ icon: Icon, title, children, defaultOpen = false }) {
 }
 
 /* ── Heatmap Cell ── */
-function HeatmapCell({ count, date }) {
+function HeatmapCell({ count, date, maxCount = 1 }) {
   const [hovered, setHovered] = useState(false);
 
-  const intensity = count === 0
-    ? "var(--color-bg-elevated)"
-    : count === 1
-    ? "rgba(139,92,246,0.3)"
-    : count <= 3
-    ? "rgba(139,92,246,0.55)"
-    : "rgba(139,92,246,0.9)";
+  // LeetCode-style intensity: 0%, 25%, 50%, 75%, 100%
+  let intensity = "var(--color-bg-elevated)";
+  if (count > 0) {
+    const ratio = Math.min(count / Math.max(maxCount, 1), 1);
+    if (ratio < 0.25) {
+      intensity = "rgba(139,92,246,0.25)";
+    } else if (ratio < 0.5) {
+      intensity = "rgba(139,92,246,0.45)";
+    } else if (ratio < 0.75) {
+      intensity = "rgba(139,92,246,0.65)";
+    } else {
+      intensity = "rgba(139,92,246,0.9)";
+    }
+  }
 
   return (
     <div
@@ -170,22 +177,15 @@ export default function SettingsPage() {
     const days = weeks * 7;
     const grid = [];
 
-    // Build a date -> count map from timeline data
+    // Build a date -> count map from actual daily timeline data
     const dateMap = {};
     if (stats?.timeline) {
       stats.timeline.forEach((t) => {
-        // Timeline has month-level data, distribute across days
-        const [year, month] = t.month.split("-");
-        const daysInMonth = new Date(year, month, 0).getDate();
-        const countPerDay = Math.ceil(t.count / daysInMonth);
-        for (let d = 1; d <= daysInMonth; d++) {
-          const dateStr = `${year}-${month.padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-          dateMap[dateStr] = (dateMap[dateStr] || 0) + countPerDay;
-        }
+        dateMap[t.date] = Number(t.count);
       });
     }
 
-    // Generate grid
+    // Generate grid for the past 12 weeks
     for (let d = days - 1; d >= 0; d--) {
       const date = new Date(today);
       date.setDate(date.getDate() - d);
@@ -203,7 +203,10 @@ export default function SettingsPage() {
       weekGroups.push(grid.slice(i, i + 7));
     }
 
-    return { grid, weekGroups, totalNotes: grid.reduce((s, d) => s + d.count, 0) };
+    const totalNotes = grid.reduce((s, d) => s + d.count, 0);
+    const maxCount = Math.max(...grid.map((d) => d.count), 1);
+
+    return { grid, weekGroups, totalNotes, maxCount };
   }, [stats?.timeline]);
 
   return (
@@ -536,7 +539,7 @@ export default function SettingsPage() {
                     {[0, 1, 2, 3, 4, 5, 6].map((dow) => {
                       const day = week.find((d) => d.dayOfWeek === dow);
                       if (!day) return <div key={dow} style={{ width: 14, height: 14 }} />;
-                      return <HeatmapCell key={dow} count={day.count} date={day.date} />;
+                      return <HeatmapCell key={dow} count={day.count} date={day.date} maxCount={heatmapData.maxCount} />;
                     })}
                   </div>
                 ))}

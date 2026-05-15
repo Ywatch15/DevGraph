@@ -218,6 +218,16 @@ GROUP BY tag
 ORDER BY count DESC
 LIMIT lim;
 $$ LANGUAGE sql STABLE;
+
+CREATE OR REPLACE FUNCTION get_user_timeline_daily(uid UUID) RETURNS TABLE(date TEXT, count BIGINT) AS $$
+SELECT TO_CHAR(created_at, 'YYYY-MM-DD') AS date,
+    COUNT(*) AS count
+FROM notes
+WHERE user_id = uid
+GROUP BY date
+ORDER BY date;
+$$ LANGUAGE sql STABLE;
+
 CREATE OR REPLACE FUNCTION get_user_timeline(uid UUID) RETURNS TABLE(month TEXT, count BIGINT) AS $$
 SELECT TO_CHAR(created_at, 'YYYY-MM') AS month,
     COUNT(*) AS count
