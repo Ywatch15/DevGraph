@@ -97,10 +97,10 @@ function AccordionCard({ icon: Icon, title, children, defaultOpen = false }) {
 }
 
 /* ── Heatmap Cell ── */
-function HeatmapCell({ count, date, maxCount = 1 }) {
+function HeatmapCell({ count, date, weekKey, maxCount = 1 }) {
   const [hovered, setHovered] = useState(false);
 
-  // LeetCode-style intensity: 0%, 25%, 50%, 75%, 100%
+  // GitHub/LeetCode-style intensity: scale from 0-100%
   let intensity = "var(--color-bg-elevated)";
   if (count > 0) {
     const ratio = Math.min(count / Math.max(maxCount, 1), 1);
@@ -123,11 +123,12 @@ function HeatmapCell({ count, date, maxCount = 1 }) {
     >
       <div
         style={{
-          width: 14,
-          height: 14,
+          width: 16,
+          height: 16,
           borderRadius: 3,
           background: intensity,
           cursor: "pointer",
+          border: "1px solid rgba(255,255,255,0.1)",
         }}
       />
       {hovered && (
@@ -140,17 +141,17 @@ function HeatmapCell({ count, date, maxCount = 1 }) {
             background: "var(--color-bg-card)",
             border: "1px solid var(--color-border)",
             borderRadius: 6,
-            padding: "4px 8px",
+            padding: "6px 10px",
             fontSize: 11,
             fontFamily: "var(--font-mono)",
             color: "var(--color-text-secondary)",
             whiteSpace: "nowrap",
             zIndex: 10,
-            marginBottom: 4,
+            marginBottom: 6,
             pointerEvents: "none",
           }}
         >
-          {count} note{count !== 1 ? "s" : ""} on {date}
+          {count} note{count !== 1 ? "s" : ""} • week of {date}
         </div>
       )}
     </div>
@@ -170,43 +171,48 @@ export default function SettingsPage() {
     queryFn: () => graphAPI.getPatterns().then((r) => r.data),
   });
 
-  // Build heatmap data from timeline
+  // Build heatmap data from weekly timeline
   const heatmapData = useMemo(() => {
-    const today = new Date();
-    const weeks = 12;
-    const days = weeks * 7;
-    const grid = [];
-
-    // Build a date -> count map from actual daily timeline data
-    const dateMap = {};
+    const weeks = 52; // Show 52 weeks (1 year)
+    
+    // Build a week-number -> count map from actual weekly data
+    const weekMap = {};
     if (stats?.timeline) {
       stats.timeline.forEach((t) => {
-        dateMap[t.date] = Number(t.count);
+        weekMap[t.week] = Number(t.count);
       });
     }
 
-    // Generate grid for the past 12 weeks
-    for (let d = days - 1; d >= 0; d--) {
+    // Generate grid for the past 52 weeks
+    const today = new Date();
+    const grid = [];
+    
+    for (let w = weeks - 1; w >= 0; w--) {
       const date = new Date(today);
-      date.setDate(date.getDate() - d);
-      const dateStr = date.toISOString().split("T")[0];
+      date.setDate(date.getDate() - (w * 7));
+      const weekNumber = Math.floor((date - new Date(date.getFullYear(), 0, 1)) / 86400000 / 7);
+      const year = date.getFullYear();
+      const weekKey = `${year}-${String(weekNumber).padStart(2, "0")}`;
+      
       grid.push({
-        date: dateStr,
-        count: dateMap[dateStr] || 0,
-        dayOfWeek: date.getDay(),
+        weekKey,
+        date: date.toISOString().split("T")[0],
+        count: weekMap[weekKey] || 0,
+        weekNumber,
+        year,
       });
     }
 
-    // Group by weeks
-    const weekGroups = [];
+    // Group by rows (7 weeks per row for better layout)
+    const rows = [];
     for (let i = 0; i < grid.length; i += 7) {
-      weekGroups.push(grid.slice(i, i + 7));
+      rows.push(grid.slice(i, i + 7));
     }
 
-    const totalNotes = grid.reduce((s, d) => s + d.count, 0);
-    const maxCount = Math.max(...grid.map((d) => d.count), 1);
+    const totalNotes = grid.reduce((s, w) => s + w.count, 0);
+    const maxCount = Math.max(...grid.map((w) => w.count), 1);
 
-    return { grid, weekGroups, totalNotes, maxCount };
+    return { grid, rows, totalNotes, maxCount };
   }, [stats?.timeline]);
 
   return (
@@ -507,48 +513,69 @@ export default function SettingsPage() {
         <AccordionCard icon={Clock} title="Knowledge Timeline">
           {heatmapData.totalNotes > 0 || stats?.timeline?.length > 0 ? (
             <div>
-              {/* Month labels */}
-              <div style={{ display: "flex", gap: 3, marginBottom: 4, paddingLeft: 32 }}>
-                {heatmapData.weekGroups.map((week, wi) => {
-                  const firstDay = new Date(week[0]?.date);
-                  const showLabel = wi % 4 === 0;
-                  return (
-                    <div key={wi} style={{ width: 14, textAlign: "center" }}>
-                      {showLabel && (
-                        <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                          {firstDay.toLocaleString("default", { month: "short" })}
+              {/* Title */}
+              <p style={{ fontSize: 12, color: "var(--color-text-muted)", marginBottom: 16, fontWeight: 500 }}>
+                52-week activity heatmap showing notes created per week
+              </p>
+
+              {/* Grid of weeks */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, overflowX: "auto" }}>
+                {heatmapData.rows.map((row, rowIndex) => (
+                  <div key={rowIndex} style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                    {/* Row label (month/quarter) */}
+                    <div style={{ width: 40, fontSize: 10, color: "var(--color-text-muted)" }}>
+                      {rowIndex % 4 === 0 && (
+                        <span>
+                          W{Math.max(1, heatmapData.grid.length - (rowIndex * 7) - 1)}
                         </span>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-              {/* Grid */}
-              <div style={{ display: "flex", gap: 3 }}>
-                {/* Day labels */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 3, paddingTop: 0 }}>
-                  {["", "Mon", "", "Wed", "", "Fri", ""].map((label, i) => (
-                    <div key={i} style={{ height: 14, fontSize: 11, color: "var(--color-text-muted)", display: "flex", alignItems: "center", width: 26 }}>
-                      {label}
+                    
+                    {/* Week cells */}
+                    <div style={{ display: "flex", gap: 4 }}>
+                      {row.map((week) => (
+                        <HeatmapCell
+                          key={week.weekKey}
+                          count={week.count}
+                          date={week.date}
+                          weekKey={week.weekKey}
+                          maxCount={heatmapData.maxCount}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
-                {/* Weeks */}
-                {heatmapData.weekGroups.map((week, wi) => (
-                  <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                    {[0, 1, 2, 3, 4, 5, 6].map((dow) => {
-                      const day = week.find((d) => d.dayOfWeek === dow);
-                      if (!day) return <div key={dow} style={{ width: 14, height: 14 }} />;
-                      return <HeatmapCell key={dow} count={day.count} date={day.date} maxCount={heatmapData.maxCount} />;
-                    })}
                   </div>
                 ))}
               </div>
+
+              {/* Legend */}
+              <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 16, paddingTop: 12, borderTop: "1px solid var(--color-border)" }}>
+                <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Less</span>
+                {[0, 1, 2, 3, 4].map((level) => (
+                  <div
+                    key={level}
+                    style={{
+                      width: 14,
+                      height: 14,
+                      borderRadius: 3,
+                      background: [
+                        "var(--color-bg-elevated)",
+                        "rgba(139,92,246,0.25)",
+                        "rgba(139,92,246,0.45)",
+                        "rgba(139,92,246,0.65)",
+                        "rgba(139,92,246,0.9)",
+                      ][level],
+                      border: "1px solid rgba(255,255,255,0.1)",
+                    }}
+                  />
+                ))}
+                <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>More</span>
+              </div>
+
               {/* Summary */}
               <p style={{ fontSize: 13, color: "var(--color-text-muted)", marginTop: 12 }}>
-                {heatmapData.totalNotes} notes in the last 12 weeks
-                {heatmapData.grid.some((d) => d.count > 0) && (
-                  <> · Most active: {heatmapData.grid.reduce((max, d) => d.count > max.count ? d : max, { count: 0 }).date}</>
+                {heatmapData.totalNotes} notes in the last 52 weeks
+                {heatmapData.grid.some((w) => w.count > 0) && (
+                  <> · Most active: Week {Math.max(...heatmapData.grid.map((w) => w.weekNumber))} ({heatmapData.grid.reduce((max, w) => w.count > max.count ? w : max, { count: 0 }).count} notes)</>
                 )}
               </p>
             </div>

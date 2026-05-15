@@ -219,13 +219,15 @@ ORDER BY count DESC
 LIMIT lim;
 $$ LANGUAGE sql STABLE;
 
-CREATE OR REPLACE FUNCTION get_user_timeline_daily(uid UUID) RETURNS TABLE(date TEXT, count BIGINT) AS $$
-SELECT TO_CHAR(created_at, 'YYYY-MM-DD') AS date,
-    COUNT(*) AS count
+CREATE OR REPLACE FUNCTION get_user_timeline_weekly(uid UUID) RETURNS TABLE(week TEXT, count BIGINT, start_date TEXT) AS $$
+SELECT 
+    TO_CHAR(created_at, 'YYYY-IW') AS week,
+    COUNT(*) AS count,
+    TO_CHAR(DATE_TRUNC('week', created_at), 'YYYY-MM-DD') AS start_date
 FROM notes
 WHERE user_id = uid
-GROUP BY date
-ORDER BY date;
+GROUP BY week, start_date
+ORDER BY start_date DESC;
 $$ LANGUAGE sql STABLE;
 
 CREATE OR REPLACE FUNCTION get_user_timeline(uid UUID) RETURNS TABLE(month TEXT, count BIGINT) AS $$

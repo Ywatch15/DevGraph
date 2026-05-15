@@ -245,7 +245,7 @@ class NoteService {
           .order("updated_at", { ascending: false })
           .limit(5),
         supabase.rpc("get_user_tag_counts", { uid: userId, lim: 15 }),
-        supabase.rpc("get_user_timeline_daily", { uid: userId }),
+        supabase.rpc("get_user_timeline_weekly", { uid: userId }),
       ]);
 
     const total = totalRes.count || 0;
@@ -267,7 +267,8 @@ class NoteService {
       })),
       recentNotes: (recentRes.data || []).map(this.formatNote),
       timeline: (timelineRes.data || []).map((t) => ({
-        date: t.date,
+        week: t.week,
+        startDate: t.start_date,
         count: Number(t.count),
       })),
     };
